@@ -3,7 +3,7 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include <iostream>
+#include <sstream>
 
 #include "src/json.hpp"
 #include "arg_base.h"
@@ -39,6 +39,7 @@ namespace clar {
 
     private:
         bool AddNamed(ArgBase* arg, std::ostream& err);
+        bool AddFree(ArgBase* arg, std::ostream& err);
 
     private:
         class Impl;
@@ -48,14 +49,32 @@ namespace clar {
     template <typename T, bool Required = false>
     class NamedArg: public ArgBase {
     public:
-        NamedArg(Config& config, std::string name, std::string info, T def = T())
-            : ArgBase(config, name, info, Required, impl::RequiresValue<T>())
+        NamedArg(std::string name, std::string info, T def = T())
+            : ArgBase(name, info, Required, impl::RequiresValue<T>())
             , Default_(def)
         {
         }
 
+        NamedArg(Config& config, std::string name, std::string info, T def = T())
+            : NamedArg(name, info, def)
+        {
+            std::ostringstream err;
+            if (!Add(config, err)) {
+                throw std::domain_error(err.str());
+            }
+        }
+
         virtual ~NamedArg() override
         {
+        }
+
+        bool Add(Config& config, std::ostream& err) {
+            std::ostringstream e;
+            if (!ArgBase::AddNamed(&config, e)) {
+                err << ReportedName() << " failed to add to config: " << e.str();
+                return false;
+            }
+            return true;
         }
 
         virtual std::string ReportedName() const override {
@@ -71,7 +90,7 @@ namespace clar {
         }
 
         T Get() const {
-            return impl::Get<T>(Name_, Config_.Get(), Default_);
+            return Config_ ? impl::Get<T>(Name_, Config_->Get(), Default_) : Default_;
         }
 
     private:
@@ -81,21 +100,35 @@ namespace clar {
     template <typename T, bool Required = false>
     class FreeArg: public NamedArg<T, Required> {
     public:
-        FreeArg(Config& config, size_t pos, std::string name, std::string info, T def = T())
-            : NamedArg<T, Required>(config, name, info, def)
-            , Position_(pos)
+        FreeArg(std::string name, std::string info, T def = T())
+            : NamedArg<T, Required>(name, info, def)
         {
+        }
+
+        FreeArg(Config& config, std::string name, std::string info, T def = T())
+            : FreeArg(name, info, def)
+        {
+            std::ostringstream err;
+            if (!Add(config, err)) {
+                throw std::domain_error(err.str());
+            }
         }
 
         virtual ~FreeArg() override
         {
         }
 
+        bool Add(Config& config, std::ostream& err) {
+            std::ostringstream e;
+            if (!ArgBase::AddFree(&config, e)) {
+                err << ReportedName() << " failed to add to config: " << e.str();
+                return false;
+            }
+            return true;
+        }
+
         virtual std::string ReportedName() const override {
             return "Free argument '" + ArgBase::Name() + "'";
         }
-
-    private:
-        size_t Position_;
     };
 } // namespace clar

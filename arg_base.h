@@ -26,6 +26,7 @@ namespace clar {
         const std::string& Info() const;
 
         bool IsRequired() const;
+        bool IsMultiple() const;
         Value RequiresValue() const;
 
         const std::vector<char>& ShortNames() const;
@@ -35,7 +36,11 @@ namespace clar {
 
     protected:
         friend class Config;
-        ArgBase(Config& config, std::string name, std::string info, bool required, Value value);
+        ArgBase(std::string name, std::string info, bool required, Value value);
+
+        bool AddNamed(Config* config, std::ostream& err);
+        bool AddFree(Config* config, std::ostream& err);
+        bool AddAlias(const std::string& name, std::ostream& err);
 
         virtual bool Check(const nlohmann::json& val, std::ostream& err) const = 0;
         virtual bool Parse(nlohmann::json& res, const std::string& val, std::ostream& err) const = 0;
@@ -49,6 +54,6 @@ namespace clar {
         std::vector<char> ShortNames_;
         std::vector<std::string> LongNames_;
 
-        Config& Config_;
+        Config* Config_;
     };
 } // namespace clar

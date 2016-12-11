@@ -7,23 +7,57 @@ using namespace std;
 
 namespace clar {
 
-ArgBase::ArgBase(Config& config, string name, string info, bool required, Value value)
+ArgBase::ArgBase(string name, string info, bool required, Value value)
     : Name_(name)
     , Info_(info)
     , Required_(required)
     , Value_(value)
-    , Config_(config)
+    , Config_(nullptr)
 {
-    ostringstream err;
-    err << ReportedName() << " failed to add to config: ";
-    if (!Config_.AddNamed(this, err)) {
-        throw domain_error(err.str());
-    }
-    LongNames_.push_back(Name_);
 }
 
 ArgBase::~ArgBase()
 {
+}
+
+bool ArgBase::AddNamed(Config* config, ostream& err) {
+    Config_ = config;
+    if (!Config_) {
+        err << "Null config pointer";
+        return false;
+    }
+    if (!Config_->AddNamed(this, err)) {
+        return false;
+    }
+    for (auto n: LongNames_) {
+        if (!AddAlias(n, err)) {
+            return false;
+        }
+    }
+    LongNames_.push_back(Name_);
+    return true;
+}
+
+bool ArgBase::AddFree(Config* config, ostream& err) {
+    Config_ = config;
+    if (!Config_) {
+        err << "Null config pointer";
+        return false;
+    }
+    if (!Config_->AddFree(this, err)) {
+        return false;
+    }
+    return true;
+}
+
+bool ArgBase::AddAlias(const string& name, ostream& err) {
+    assert(Config_);
+    ostringstream e;
+    if (!Config_->Alias(Name_, name, e)) {
+        err << ReportedName() << " failed to add alias: " << e.str();
+        return false;
+    }
+    return true;
 }
 
 //~ ArgBase& ArgBase::Short(char c) {
@@ -34,10 +68,11 @@ ArgBase::~ArgBase()
 //~ }
 
 ArgBase& ArgBase::Long(string name) {
-    ostringstream err;
-    err << ReportedName() << " failed to add alias: ";
-    if (!Config_.Alias(Name_, name, err)) {
-        throw domain_error(err.str());
+    if (Config_) {
+        ostringstream err;
+        if (!AddAlias(name, err)) {
+            throw domain_error(err.str());
+        }
     }
     LongNames_.push_back(name);
     return *this;
@@ -53,6 +88,10 @@ const string& ArgBase::Info() const {
 
 bool ArgBase::IsRequired() const {
     return Required_;
+}
+
+bool ArgBase::IsMultiple() const {
+    return Value_ == _Multiple;
 }
 
 ArgBase::Value ArgBase::RequiresValue() const {

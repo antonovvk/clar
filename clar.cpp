@@ -28,16 +28,16 @@ public:
                 return false;
             }
         }
-        for (auto arg: NamedArgs_) {
-            size_t count = 0;
+
+        auto allArgs = NamedArgs_;
+        allArgs.insert(allArgs.end(), FreeArgs_.begin(), FreeArgs_.end());
+
+        for (auto arg: allArgs) {
+            size_t c = 0;
             for (auto name: arg->LongNames()) {
-                count += src.count(name);
+                c += src.count(name);
             }
-            if (count == 0 && arg->IsRequired()) {
-                err << "Required option '" << arg->Name() << "' was not specified in config";
-                return false;
-            }
-            if (count > 1) {
+            if (c > 1) {
                 err << "Option '" << arg->Name() << "' or one of its aliases was specified in config mulitple times";
                 return false;
             }
@@ -51,8 +51,11 @@ public:
     }
 
     bool Parse(const vector<string>& args, ostream& err) {
+        auto data = Data_;
+
         unordered_map<string, size_t> count;
         size_t idx = 0;
+        size_t pos = 0;
         while (idx < args.size()) {
             size_t inc = 0;
             for (auto arg: NamedArgs_) {
@@ -64,11 +67,22 @@ public:
                         return false;
                     }
                     ++count[arg->Name()];
-                    if (!arg->Parse(Data_, val, err)) {
+                    if (!arg->Parse(data, val, err)) {
                         return false;
                     }
                     break;
                 }
+            }
+            if (!inc && pos < FreeArgs_.size()) {
+                auto arg = FreeArgs_[pos];
+                ++count[arg->Name()];
+                if (!arg->Parse(data, args[idx], err)) {
+                    return false;
+                }
+                if (!arg->IsMultiple()) {
+                    ++pos;
+                }
+                inc = 1;
             }
             if (!inc) {
                 err << "Unknown argument '" << args[idx] << "' at position " << idx + 1;
@@ -77,21 +91,26 @@ public:
             idx += inc;
         }
 
-        for (auto arg: NamedArgs_) {
-            auto c = count.find(arg->Name());
-            if (c == count.end()) {
-                if (arg->IsRequired()) {
-                    err << arg->ReportedName() << " is required and was not set";
-                    return false;
-                }
-            } else if (c->second > 1) {
-                if (arg->RequiresValue() != ArgBase::_Multiple) {
+        auto allArgs = NamedArgs_;
+        allArgs.insert(allArgs.end(), FreeArgs_.begin(), FreeArgs_.end());
+
+        for (auto arg: allArgs) {
+            size_t c = data.count(arg->Name());
+            auto it = count.find(arg->Name());
+            if (it != count.end()) {
+                if (it->second > 1 && !arg->IsMultiple()) {
                     err << arg->ReportedName() << " was specified multiple times";
                     return false;
                 }
+                c += it->second;
+            }
+            if (arg->IsRequired() && !c) {
+                err << arg->ReportedName() << " is required and was not set";
+                return false;
             }
         }
 
+        Data_ = data;
         return true;
     }
 
@@ -126,6 +145,23 @@ public:
         return true;
     }
 
+    bool AddFree(ArgBase* arg, ostream& err) {
+        if (!arg) {
+            err << "Null argument pointer";
+            return false;
+        }
+        if (!(ArgMap_.insert({ arg->Name(), arg })).second) {
+            err << "Option name '" << arg->Name() << "' is already used";
+            return false;
+        }
+        if (arg->IsMultiple() && !FreeArgs_.empty()) {
+            err << "Only one free arg is allowed if it takes multiple values";
+            return false;
+        }
+        FreeArgs_.push_back(arg);
+        return true;
+    }
+
 private:
     size_t Match(const ArgBase& arg, string& val, size_t idx, const vector<string>& args) const {
         size_t res = 0;
@@ -150,6 +186,7 @@ private:
     const uint64_t Flavours_;
     nlohmann::json Data_;
     vector<ArgBase*> NamedArgs_;
+    vector<ArgBase*> FreeArgs_;
     unordered_map<string, ArgBase*> ArgMap_;
 };
 
@@ -182,6 +219,10 @@ const nlohmann::json& Config::Get() const {
 
 bool Config::AddNamed(ArgBase* arg, ostream& err) {
     return Impl_->AddNamed(arg, err);
+}
+
+bool Config::AddFree(ArgBase* arg, ostream& err) {
+    return Impl_->AddFree(arg, err);
 }
 
 } // namespace clar
