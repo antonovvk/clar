@@ -8,6 +8,8 @@ cc_library(
         "arg_base.cpp",
         "arg_impl.h",
         "arg_impl.cpp",
+        "actions.h",
+        "actions.cpp",
         "clar.cpp",
     ],
     copts = [

@@ -19,15 +19,37 @@ namespace clar {
         _ShortNoSep     = 0x0020,   // -a val equivalent to -aval
         _LongSpaceSep   = 0x0040,   // --foo val
         _LongEqualsSep  = 0x0080,   // --foo=val
-        _LongNoSep      = 0x0100,   // --foo val aquivalent to --fooval
-        _UnixFlavours = _LongDoubleDash | _ShortStacked | _ShortSpaceSep | _ShortNoSep | _LongSpaceSep,
+        _HelpAction     = 0x0100,   // --help for help
+        _VersionAction  = 0x0200,   // --version for version
+        _ConfigAction   = 0x0400,   // --config for config
+        _CommonActions  = _HelpAction | _VersionAction | _ConfigAction,
+        _HelpShort      = 0x1000,   // -h alias for --help
+        _VersionShort   = 0x2000,   // -v alias for --version
+        _ConfigShort    = 0x4000,   // -c alias for --config
+        _CommonActShort = _HelpShort | _VersionShort | _ConfigShort,
+        _UnixFlavours =
+            _LongDoubleDash |
+            _ShortStacked |
+            _ShortSpaceSep |
+            _ShortNoSep |
+            _LongSpaceSep |
+            _CommonActions |
+            _CommonActShort
+        ,
+        _DoNotExitOnHelp    = 0x00010000,
     };
 
     class Config {
         friend class ArgBase;
 
     public:
-        Config(uint64_t flavours = _UnixFlavours);
+        Config(
+            std::string name = "",
+            std::string info = "",
+            std::ostream& infoOutput = std::cout,
+            uint64_t flavours = _UnixFlavours
+        );
+
         ~Config();
 
         bool Load(const nlohmann::json& src, std::ostream& err);
@@ -35,11 +57,11 @@ namespace clar {
         bool Parse(const std::vector<std::string>& args, std::ostream& err);
         bool Alias(const std::string& arg, const std::string& alias, std::ostream& err);
 
+        std::vector<const ArgBase*> Args() const;
         const nlohmann::json& Get() const;
 
     private:
-        bool AddNamed(ArgBase* arg, std::ostream& err);
-        bool AddFree(ArgBase* arg, std::ostream& err);
+        bool Add(const ArgBase* arg, std::ostream& err);
 
     private:
         class Impl;
@@ -50,8 +72,7 @@ namespace clar {
     class NamedArg: public ArgBase {
     public:
         NamedArg(std::string name, std::string info, T def = T())
-            : ArgBase(name, info, Required, impl::RequiresValue<T>())
-            , Default_(def)
+            : NamedArg(false, name, info, def)
         {
         }
 
@@ -59,26 +80,13 @@ namespace clar {
             : NamedArg(name, info, def)
         {
             std::ostringstream err;
-            if (!Add(config, err)) {
+            if (!ArgBase::Add(config, err)) {
                 throw std::domain_error(err.str());
             }
         }
 
         virtual ~NamedArg() override
         {
-        }
-
-        bool Add(Config& config, std::ostream& err) {
-            std::ostringstream e;
-            if (!ArgBase::AddNamed(&config, e)) {
-                err << ReportedName() << " failed to add to config: " << e.str();
-                return false;
-            }
-            return true;
-        }
-
-        virtual std::string ReportedName() const override {
-            return "Argument '--" + ArgBase::Name() + "'";
         }
 
         virtual bool Check(const nlohmann::json& val, std::ostream& err) const override {
@@ -93,6 +101,13 @@ namespace clar {
             return Config_ ? impl::Get<T>(Name_, Config_->Get(), Default_) : Default_;
         }
 
+    protected:
+        NamedArg(bool free, std::string name, std::string info, T def)
+            : ArgBase(name, info, Required, free, impl::RequiresValue<T>())
+            , Default_(def)
+        {
+        }
+
     private:
         const T Default_;
     };
@@ -101,7 +116,7 @@ namespace clar {
     class FreeArg: public NamedArg<T, Required> {
     public:
         FreeArg(std::string name, std::string info, T def = T())
-            : NamedArg<T, Required>(name, info, def)
+            : NamedArg<T, Required>(true, name, info, def)
         {
         }
 
@@ -109,26 +124,13 @@ namespace clar {
             : FreeArg(name, info, def)
         {
             std::ostringstream err;
-            if (!Add(config, err)) {
+            if (!ArgBase::Add(config, err)) {
                 throw std::domain_error(err.str());
             }
         }
 
         virtual ~FreeArg() override
         {
-        }
-
-        bool Add(Config& config, std::ostream& err) {
-            std::ostringstream e;
-            if (!ArgBase::AddFree(&config, e)) {
-                err << ReportedName() << " failed to add to config: " << e.str();
-                return false;
-            }
-            return true;
-        }
-
-        virtual std::string ReportedName() const override {
-            return "Free argument '" + ArgBase::Name() + "'";
         }
     };
 } // namespace clar

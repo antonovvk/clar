@@ -1,6 +1,7 @@
 #include <unordered_map>
 
 #include "clar.h"
+#include "actions.h"
 
 using namespace std;
 
@@ -29,16 +30,13 @@ public:
             }
         }
 
-        auto allArgs = NamedArgs_;
-        allArgs.insert(allArgs.end(), FreeArgs_.begin(), FreeArgs_.end());
-
-        for (auto arg: allArgs) {
+        for (auto arg: Args()) {
             size_t c = 0;
             for (auto name: arg->LongNames()) {
                 c += src.count(name);
             }
             if (c > 1) {
-                err << "Option '" << arg->Name() << "' or one of its aliases was specified in config mulitple times";
+                err << arg->ReportedName() << " or one of its aliases was specified in config mulitple times";
                 return false;
             }
         }
@@ -91,10 +89,7 @@ public:
             idx += inc;
         }
 
-        auto allArgs = NamedArgs_;
-        allArgs.insert(allArgs.end(), FreeArgs_.begin(), FreeArgs_.end());
-
-        for (auto arg: allArgs) {
+        for (auto arg: Args()) {
             size_t c = data.count(arg->Name());
             auto it = count.find(arg->Name());
             if (it != count.end()) {
@@ -115,51 +110,55 @@ public:
     }
 
     bool Alias(const string& arg, const string& alias, ostream& err) {
+        auto info = "Option '" + arg + "': Failed to add alias: ";
         auto it = ArgMap_.find(arg);
         if (it == ArgMap_.end()) {
-            err << "Unknown option '" << arg << "'";
+            err << info << "Unknown option '" << arg << "'";
             return false;
         }
         auto res = ArgMap_.insert({ alias, it->second });
         if (!res.second) {
-            err << "Alias '" << alias << "' is already used by option '" << res.first->second->Name() << "'";
+            err << info << "Alias '" << alias << "' is already used by option '" << res.first->second->Name() << "'";
             return false;
         }
         return true;
+    }
+
+    vector<const ArgBase*> Args() const {
+        auto args = NamedArgs_;
+        args.insert(args.end(), FreeArgs_.begin(), FreeArgs_.end());
+        return args;
     }
 
     const nlohmann::json& Get() const {
         return Data_;
     }
 
-    bool AddNamed(ArgBase* arg, ostream& err) {
+    bool Add(const ArgBase* arg, ostream& err) {
         if (!arg) {
-            err << "Null argument pointer";
-            return false;
+            throw domain_error("Config::Impl::Add(): Null argument pointer");
         }
+
+        auto info = arg->ReportedName() + " failed to add to config: ";
         if (!(ArgMap_.insert({ arg->Name(), arg })).second) {
-            err << "Option name '" << arg->Name() << "' is already used";
+            err << info << "Option name '" << arg->Name() << "' is already used";
             return false;
         }
-        NamedArgs_.push_back(arg);
+
+        if (arg->IsFree()) {
+            if (!FreeArgs_.empty() && FreeArgs_.back()->IsMultiple()) {
+                err << info << "Only the last free arg is allowed to accept multiple values";
+                return false;
+            }
+            FreeArgs_.push_back(arg);
+        } else {
+            NamedArgs_.push_back(arg);
+        }
         return true;
     }
 
-    bool AddFree(ArgBase* arg, ostream& err) {
-        if (!arg) {
-            err << "Null argument pointer";
-            return false;
-        }
-        if (!(ArgMap_.insert({ arg->Name(), arg })).second) {
-            err << "Option name '" << arg->Name() << "' is already used";
-            return false;
-        }
-        if (arg->IsMultiple() && !FreeArgs_.empty()) {
-            err << "Only one free arg is allowed if it takes multiple values";
-            return false;
-        }
-        FreeArgs_.push_back(arg);
-        return true;
+    void Hold(ArgPtr arg) {
+        HeldArgs_.emplace_back(move(arg));
     }
 
 private:
@@ -171,7 +170,7 @@ private:
                 break;
             }
         }
-        if (res && arg.RequiresValue() != ArgBase::_None) {
+        if (res && !arg.IsSwitch()) {
             if (Flavours_ & _LongSpaceSep) {
                 if (idx + 1 < args.size()) {
                     val = args[idx + 1];
@@ -185,14 +184,18 @@ private:
 private:
     const uint64_t Flavours_;
     nlohmann::json Data_;
-    vector<ArgBase*> NamedArgs_;
-    vector<ArgBase*> FreeArgs_;
-    unordered_map<string, ArgBase*> ArgMap_;
+    vector<ArgPtr> HeldArgs_;
+    vector<const ArgBase*> NamedArgs_;
+    vector<const ArgBase*> FreeArgs_;
+    unordered_map<string, const ArgBase*> ArgMap_;
 };
 
-Config::Config(uint64_t flavours)
+Config::Config(string name, string info, ostream& infoOutput, uint64_t flavours)
     : Impl_(new Impl(flavours))
 {
+    if (flavours & _HelpAction) {
+        Impl_->Hold(CreateHelpAction(*this, name, info, infoOutput, flavours & _DoNotExitOnHelp));
+    }
 }
 
 Config::~Config() = default;
@@ -213,16 +216,16 @@ bool Config::Alias(const string& arg, const string& alias, ostream& err) {
     return Impl_->Alias(arg, alias, err);
 }
 
+vector<const ArgBase*> Config::Args() const {
+    return Impl_->Args();
+}
+
 const nlohmann::json& Config::Get() const {
     return Impl_->Get();
 }
 
-bool Config::AddNamed(ArgBase* arg, ostream& err) {
-    return Impl_->AddNamed(arg, err);
-}
-
-bool Config::AddFree(ArgBase* arg, ostream& err) {
-    return Impl_->AddFree(arg, err);
+bool Config::Add(const ArgBase* arg, ostream& err) {
+    return Impl_->Add(arg, err);
 }
 
 } // namespace clar

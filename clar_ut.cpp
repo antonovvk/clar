@@ -43,7 +43,7 @@ TEST(NamedArgs, IntegerRequiredFailure) {
     //~ cerr << err.str() << endl;
     EXPECT_EQ(false, ok);
     // TODO: fix message
-    EXPECT_EQ("Argument '--foo' failed to parse value: stoi", err.str());
+    EXPECT_EQ("Option 'foo' failed to parse value: stoi", err.str());
 }
 
 TEST(NamedArgs, IntegerArrayRequiredSucces) {
@@ -85,7 +85,7 @@ TEST(NamedArgs, BooleanRequiredMissing) {
     auto ok = cfg.Parse({ "--bar" }, err);
     //~ cerr << err.str() << endl;
     EXPECT_EQ(false, ok);
-    EXPECT_EQ("Argument '--foo' is required and was not set", err.str());
+    EXPECT_EQ("Option 'foo' is required and was not set", err.str());
 }
 
 TEST(NamedArgs, BooleanDuplicateName) {
@@ -97,7 +97,7 @@ TEST(NamedArgs, BooleanDuplicateName) {
     auto ok = bar.Add(cfg, err);
     //~ cerr << err.str() << endl;
     EXPECT_EQ(false, ok);
-    EXPECT_EQ("Argument '--foo' failed to add to config: Option name 'foo' is already used", err.str());
+    EXPECT_EQ("Option 'foo' failed to add to config: Option name 'foo' is already used", err.str());
 }
 
 TEST(NamedArgs, BooleanMultupleUse) {
@@ -108,7 +108,7 @@ TEST(NamedArgs, BooleanMultupleUse) {
     auto ok = cfg.Parse({ "--foo", "--foo" }, err);
     //~ cerr << err.str() << endl;
     EXPECT_EQ(false, ok);
-    EXPECT_EQ("Argument '--foo' was specified multiple times", err.str());
+    EXPECT_EQ("Option 'foo' was specified multiple times", err.str());
 }
 
 TEST(NamedArgs, BooleanAliasFailure) {
@@ -120,7 +120,7 @@ TEST(NamedArgs, BooleanAliasFailure) {
         FAIL();
     } catch (const exception& e) {
         //~ cerr << e.what() << endl;
-        EXPECT_EQ("Argument '--foo' failed to add alias: Alias 'bar' is already used by option 'bar'", string(e.what()));
+        EXPECT_EQ("Option 'foo': Failed to add alias: Alias 'bar' is already used by option 'bar'", string(e.what()));
     } catch (...) {
         FAIL();
     }
@@ -151,7 +151,7 @@ TEST(FreeArgs, StringRequiredFailure) {
     //~ cerr << err.str() << endl;
     EXPECT_EQ(false, ok);
     // TODO: fix message
-    EXPECT_EQ("Free argument 'bar' is required and was not set", err.str());
+    EXPECT_EQ("Option 'bar' is required and was not set", err.str());
 }
 
 TEST(FreeArgs, IntegerArrayRequiredSucces) {
@@ -179,7 +179,7 @@ TEST(FreeArgs, ManySingularFreeArgs) {
     FreeArg<uint32_t> bar(cfg, "bar", "BAR");
 
     ostringstream err;
-    auto ok = cfg.Parse({  "-1", "1" }, err);
+    auto ok = cfg.Parse({ "-1", "1" }, err);
     //~ cerr << err.str() << endl;
     EXPECT_EQ(true, ok);
     EXPECT_EQ(-1, foo.Get());
@@ -191,13 +191,13 @@ TEST(FreeArgs, ManySingularFreeArgs) {
 TEST(FreeArgs, ManyMultipleFreeArgs) {
     Config cfg;
     FreeArg<vector<int>, true> foo(cfg, "foo", "FOO");
-    FreeArg<vector<uint32_t>> bar("bar", "BAR");
+    FreeArg<uint32_t> bar("bar", "BAR");
 
     ostringstream err;
     auto ok = bar.Add(cfg, err);
     //~ cerr << err.str() << endl;
     EXPECT_EQ(false, ok);
-    EXPECT_EQ("Free argument 'bar' failed to add to config: Only one free arg is allowed if it takes multiple values", err.str());
+    EXPECT_EQ("Option 'bar' failed to add to config: Only the last free arg is allowed to accept multiple values", err.str());
 }
 
 TEST(Config, LoadBooleanRequiredSuccess) {
@@ -225,7 +225,7 @@ TEST(Config, LoadBooleanRequiredFailure) {
     ok = cfg.Parse({}, err);
     //~ cerr << err.str() << endl;
     EXPECT_EQ(false, ok);
-    EXPECT_EQ("Argument '--foo' is required and was not set", err.str());
+    EXPECT_EQ("Option 'foo' is required and was not set", err.str());
 
     ok = cfg.Parse({ "--foo" }, err);
     EXPECT_EQ(true, ok);
@@ -252,4 +252,33 @@ TEST(Config, LoadBooleanMultipleEntries) {
     //~ cerr << err.str() << endl;
     EXPECT_EQ(false, ok);
     EXPECT_EQ("Option 'foo' or one of its aliases was specified in config mulitple times", err.str());
+}
+
+TEST(ActionArgs, BasicHelp) {
+    ostringstream out;
+    Config cfg("test", "This is HELP test", out, _UnixFlavours | _DoNotExitOnHelp);
+    NamedArg<int, true> foo(cfg, "foo", "FOO");
+    FreeArg<string, true> bar(cfg, "bar", "BAR");
+    FreeArg<vector<string>> jar(cfg, "jar", "JAR");
+    NamedArg<int> wat(cfg, "wat", "WAT");
+
+    ostringstream err;
+    cfg.Parse({ "--help" }, err);
+    //~ cerr << out.str() << endl;
+    //~ cerr << err.str() << endl;
+
+    EXPECT_EQ(
+        "test: This is HELP test\n"
+        "Usage: test [options] --foo <> <bar> [jar1 ... jarN]\n"
+        "\n"
+        "Required arguments:\n"
+        "  --foo <>\t-- FOO\n"
+        "  bar\t-- BAR\n"
+        "\n"
+        "Optional arguments:\n"
+        "  --help\t-- Print help and exit\n"
+        "  --wat <>\t-- WAT\n"
+        "  jar\t-- JAR\n",
+        out.str()
+    );
 }
