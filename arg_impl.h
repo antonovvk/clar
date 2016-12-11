@@ -13,13 +13,13 @@ namespace impl {
     ArgBase::Value RequiresValue();
 
     template <typename T>
-    T Get(const std::string&, const nlohmann::json&, T def);
+    T Get(const std::string&, const json&, T def);
 
     template <typename T>
-    bool Check(const ArgBase&, const nlohmann::json&, std::ostream&);
+    bool Check(const ArgBase&, const json&, std::ostream&);
 
     template <typename T>
-    bool Parse(nlohmann::json&, const ArgBase&, const std::string&, std::ostream&);
+    bool Parse(json&, const ArgBase&, const std::string&, std::ostream&);
 
 } // namespace impl
 } // namespace clar

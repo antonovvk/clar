@@ -13,13 +13,13 @@ namespace impl {
     }
 
     template <>
-    bool Get<bool>(const string& name, const nlohmann::json& data, bool def) {
+    bool Get<bool>(const string& name, const json& data, bool def) {
         auto it = data.find(name);
         return it != data.end() ? it.value().get<bool>() : def;
     }
 
     template <>
-    bool Check<bool>(const ArgBase& arg, const nlohmann::json& val, ostream& err) {
+    bool Check<bool>(const ArgBase& arg, const json& val, ostream& err) {
         if (!val.is_boolean()) {
             err << arg.ReportedName() << " expects boolean value in config";
             return false;
@@ -28,16 +28,43 @@ namespace impl {
     }
 
     template <>
-    bool Parse<bool>(nlohmann::json& res, const ArgBase& arg, const string&, ostream&) {
+    bool Parse<bool>(json& res, const ArgBase& arg, const string&, ostream&) {
         res[arg.Name()] = true;
         return true;
     }
 
-    template <bool S, bool F, bool U>
-    bool CheckValue(const ArgBase&, const nlohmann::json&, ostream&);
+    template <>
+    ArgBase::Value RequiresValue<json>() {
+        return ArgBase::_Single;
+    }
 
     template <>
-    bool CheckValue<true, false, false>(const ArgBase& arg, const nlohmann::json& val, ostream& err) {
+    json Get<json>(const string& name, const json& data, json def) {
+        auto it = data.find(name);
+        return it != data.end() ? it.value() : def;
+    }
+
+    template <>
+    bool Check<json>(const ArgBase&, const json&, ostream&) {
+        return true;
+    }
+
+    template <>
+    bool Parse<json>(json& res, const ArgBase& arg, const string& str, ostream& err) {
+        try {
+            res[arg.Name()] = json::parse(str);
+        } catch (const exception& e) {
+            err << "Failed to parse JSON: " << e.what();
+            return false;
+        }
+        return true;
+    }
+
+    template <bool S, bool F, bool U>
+    bool CheckValue(const ArgBase&, const json&, ostream&);
+
+    template <>
+    bool CheckValue<true, false, false>(const ArgBase& arg, const json& val, ostream& err) {
         if (!val.is_string()) {
             err << "Expected string";
             return false;
@@ -46,7 +73,7 @@ namespace impl {
     }
 
     template <>
-    bool CheckValue<false, true, false>(const ArgBase& arg, const nlohmann::json& val, ostream& err) {
+    bool CheckValue<false, true, false>(const ArgBase& arg, const json& val, ostream& err) {
         if (!val.is_number_float()) {
             err << "Expected floating point";
             return false;
@@ -55,7 +82,7 @@ namespace impl {
     }
 
     template <>
-    bool CheckValue<false, false, false>(const ArgBase& arg, const nlohmann::json& val, ostream& err) {
+    bool CheckValue<false, false, false>(const ArgBase& arg, const json& val, ostream& err) {
         if (!val.is_number_integer()) {
             err << "Expected signed integer";
             return false;
@@ -64,7 +91,7 @@ namespace impl {
     }
 
     template <>
-    bool CheckValue<false, false, true>(const ArgBase& arg, const nlohmann::json& val, ostream& err) {
+    bool CheckValue<false, false, true>(const ArgBase& arg, const json& val, ostream& err) {
         if (!val.is_number_unsigned()) {
             err << "Expected unsigned integer";
             return false;
@@ -114,12 +141,12 @@ namespace impl {
 
     template <typename T>
     struct SingleValueTraits {
-        static T Get(const string& name, const nlohmann::json& data, T def) {
+        static T Get(const string& name, const json& data, T def) {
             auto it = data.find(name);
             return it != data.end() ? it.value().get<T>() : def;
         }
 
-        static bool Check(const ArgBase& arg, const nlohmann::json& val, ostream& err) {
+        static bool Check(const ArgBase& arg, const json& val, ostream& err) {
             ostringstream e;
             if (!CheckValue<is_same<T, string>::value, is_floating_point<T>::value, is_unsigned<T>::value>(arg, val, e)) {
                 err << arg.ReportedName() << ": " << e.str() << " value in config";
@@ -128,7 +155,7 @@ namespace impl {
             return true;
         }
 
-        static bool Parse(nlohmann::json& res, const ArgBase& arg, const string& str, ostream& err) {
+        static bool Parse(json& res, const ArgBase& arg, const string& str, ostream& err) {
             T val;
             ostringstream e;
             if (!ParseValue<T>(val, str, e)) {
@@ -142,12 +169,12 @@ namespace impl {
 
     template <typename T>
     struct MultiValueTraits {
-        static vector<T> Get(const string& name, const nlohmann::json& data, vector<T> def) {
+        static vector<T> Get(const string& name, const json& data, vector<T> def) {
             auto it = data.find(name);
             return it != data.end() ? it.value().get<vector<T>>() : def;
         }
 
-        static bool Check(const ArgBase& arg, const nlohmann::json& val, ostream& err) {
+        static bool Check(const ArgBase& arg, const json& val, ostream& err) {
             if (!val.is_array()) {
                 err << arg.ReportedName() << ": Expected array in config";
                 return false;
@@ -160,7 +187,7 @@ namespace impl {
             return true;
         }
 
-        static bool Parse(nlohmann::json& res, const ArgBase& arg, const string& str, ostream& err) {
+        static bool Parse(json& res, const ArgBase& arg, const string& str, ostream& err) {
             T val;
             ostringstream e;
             if (!ParseValue<T>(val, str, e)) {
@@ -178,15 +205,15 @@ namespace impl {
         return ArgBase::_Single; \
     } \
     template <> \
-    type Get<type>(const string& name, const nlohmann::json& data, type def) { \
+    type Get<type>(const string& name, const json& data, type def) { \
         return SingleValueTraits<type>::Get(name, data, def); \
     } \
     template <>\
-    bool Check<type>(const ArgBase& arg, const nlohmann::json& val, ostream& err) { \
+    bool Check<type>(const ArgBase& arg, const json& val, ostream& err) { \
         return SingleValueTraits<type>::Check(arg, val, err); \
     } \
     template <> \
-    bool Parse<type>(nlohmann::json& res, const ArgBase& arg, const string& str, ostream& err) { \
+    bool Parse<type>(json& res, const ArgBase& arg, const string& str, ostream& err) { \
         return SingleValueTraits<type>::Parse(res, arg, str, err); \
     }
 
@@ -215,15 +242,15 @@ namespace impl {
         return ArgBase::_Multiple; \
     } \
     template <> \
-    vector<type> Get<vector<type>>(const string& name, const nlohmann::json& data, vector<type> def) { \
+    vector<type> Get<vector<type>>(const string& name, const json& data, vector<type> def) { \
         return MultiValueTraits<type>::Get(name, data, def); \
     } \
     template <>\
-    bool Check<vector<type>>(const ArgBase& arg, const nlohmann::json& val, ostream& err) { \
+    bool Check<vector<type>>(const ArgBase& arg, const json& val, ostream& err) { \
         return MultiValueTraits<type>::Check(arg, val, err); \
     } \
     template <> \
-    bool Parse<vector<type>>(nlohmann::json& res, const ArgBase& arg, const string& str, ostream& err) { \
+    bool Parse<vector<type>>(json& res, const ArgBase& arg, const string& str, ostream& err) { \
         return MultiValueTraits<type>::Parse(res, arg, str, err); \
     }
 

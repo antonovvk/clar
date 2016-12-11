@@ -30,12 +30,12 @@ namespace clar {
         {
         }
 
-        virtual bool Check(const nlohmann::json&, std::ostream& err) const override {
+        virtual bool Check(const json&, std::ostream& err) const override {
             err << ReportedName() << " is an action argument and can not be loaded from config";
             return false;
         }
 
-        virtual bool Parse(nlohmann::json&, const std::string&, std::ostream&) const override {
+        virtual bool Parse(json&, const std::string&, std::ostream&) const override {
             Action_();
             return true;
         }

@@ -126,6 +126,19 @@ TEST(NamedArgs, BooleanAliasFailure) {
     }
 }
 
+TEST(NamedArgs, JsonRequiredSucces) {
+    Config cfg;
+    NamedArg<json, true> foo(cfg, "foo", "FOO");
+
+    ostringstream err;
+    auto ok = cfg.Parse({ "--foo", "[1, 2, 3]" }, err);
+    //~ cerr << err.str() << endl;
+    EXPECT_EQ(true, ok);
+    EXPECT_EQ("[1,2,3]", foo.Get().dump());
+
+    //~ cerr << setw(4) << cfg.Get() << endl;
+}
+
 TEST(FreeArgs, StringRequiredSucces) {
     Config cfg;
     NamedArg<int, true> foo(cfg, "foo", "FOO");
@@ -185,7 +198,7 @@ TEST(FreeArgs, ManySingularFreeArgs) {
     EXPECT_EQ(-1, foo.Get());
     EXPECT_EQ(1u, bar.Get());
 
-    //~ cerr << setw(4) << cfg.Get() << endl;}
+    //~ cerr << setw(4) << cfg.Get() << endl;
 }
 
 TEST(FreeArgs, ManyMultipleFreeArgs) {
@@ -252,6 +265,59 @@ TEST(Config, LoadBooleanMultipleEntries) {
     //~ cerr << err.str() << endl;
     EXPECT_EQ(false, ok);
     EXPECT_EQ("Option 'foo' or one of its aliases was specified in config mulitple times", err.str());
+}
+
+TEST(Config, LoadJsonFields) {
+    Config cfg;
+    NamedArg<json> foo(cfg, "foo", "FOO");
+    FreeArg<json> bar(cfg, "bar", "BAR");
+
+    json data = {
+        { "foo", { { "A", 1 }, { "B", "C" } } },
+        { "bar", { { "E", { 1, 2, 3 } } } }
+    };
+
+    ostringstream err;
+    auto ok = cfg.Load(data, err);
+    //~ cerr << err.str() << endl;
+    EXPECT_EQ(true, ok);
+    EXPECT_EQ(data.dump(), cfg.Get().dump());
+
+    //~ cerr << setw(4) << cfg.Get() << endl;
+}
+
+TEST(Config, LoadJsonAndIntArray) {
+    Config cfg;
+    NamedArg<json> foo(cfg, "foo", "FOO");
+    FreeArg<vector<int>> bar(cfg, "bar", "BAR");
+
+    json data = {
+        { "foo", { { "A", 1 }, { "B", "C" } } },
+        { "bar", { 1, 2, 3 } }
+    };
+
+    ostringstream err;
+    auto ok = cfg.Load(data, err);
+    //~ cerr << err.str() << endl;
+    EXPECT_EQ(true, ok);
+    EXPECT_EQ(3u, bar.Get().size());
+    EXPECT_EQ(1, bar.Get()[0]);
+    EXPECT_EQ(2, bar.Get()[1]);
+    EXPECT_EQ(3, bar.Get()[2]);
+    EXPECT_EQ(data.dump(), cfg.Get().dump());
+
+    //~ cerr << setw(4) << cfg.Get() << endl;
+}
+
+TEST(Config, LoadIntArrayFailure) {
+    Config cfg;
+    FreeArg<vector<int>> foo(cfg, "foo", "FOO");
+
+    ostringstream err;
+    auto ok = cfg.Load({ { "foo", { "A", "B", "C" } } }, err);
+    //~ cerr << err.str() << endl;
+    EXPECT_EQ(false, ok);
+    EXPECT_EQ("Option 'foo': Expected signed integer array in config", err.str());
 }
 
 TEST(ActionArgs, BasicHelp) {

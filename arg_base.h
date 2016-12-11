@@ -8,6 +8,8 @@
 #include "src/json.hpp"
 
 namespace clar {
+    using nlohmann::json;
+
     class Config;
     class ArgBase {
     public:
@@ -42,8 +44,8 @@ namespace clar {
         friend class Config;
         ArgBase(std::string name, std::string info, bool required, bool free, Value value);
 
-        virtual bool Check(const nlohmann::json& val, std::ostream& err) const = 0;
-        virtual bool Parse(nlohmann::json& res, const std::string& val, std::ostream& err) const = 0;
+        virtual bool Check(const json& val, std::ostream& err) const = 0;
+        virtual bool Parse(json& res, const std::string& val, std::ostream& err) const = 0;
 
     protected:
         const std::string Name_;

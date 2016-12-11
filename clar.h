@@ -52,13 +52,13 @@ namespace clar {
 
         ~Config();
 
-        bool Load(const nlohmann::json& src, std::ostream& err);
+        bool Load(const json& src, std::ostream& err);
         bool Parse(int argc, char* argv[], std::ostream& err);
         bool Parse(const std::vector<std::string>& args, std::ostream& err);
         bool Alias(const std::string& arg, const std::string& alias, std::ostream& err);
 
         std::vector<const ArgBase*> Args() const;
-        const nlohmann::json& Get() const;
+        const json& Get() const;
 
     private:
         bool Add(const ArgBase* arg, std::ostream& err);
@@ -89,11 +89,11 @@ namespace clar {
         {
         }
 
-        virtual bool Check(const nlohmann::json& val, std::ostream& err) const override {
+        virtual bool Check(const json& val, std::ostream& err) const override {
             return impl::Check<T>(*this, val, err);
         }
 
-        virtual bool Parse(nlohmann::json& res, const std::string& val, std::ostream& err) const override {
+        virtual bool Parse(json& res, const std::string& val, std::ostream& err) const override {
             return impl::Parse<T>(res, *this, val, err);
         }
 

@@ -14,7 +14,7 @@ public:
     {
     }
 
-    bool Load(const nlohmann::json& src, ostream& err) {
+    bool Load(const json& src, ostream& err) {
         if (!src.is_object()) {
             err << "Expecting json object as config source";
             return false;
@@ -130,7 +130,7 @@ public:
         return args;
     }
 
-    const nlohmann::json& Get() const {
+    const json& Get() const {
         return Data_;
     }
 
@@ -183,7 +183,7 @@ private:
 
 private:
     const uint64_t Flavours_;
-    nlohmann::json Data_;
+    json Data_;
     vector<ArgPtr> HeldArgs_;
     vector<const ArgBase*> NamedArgs_;
     vector<const ArgBase*> FreeArgs_;
@@ -200,7 +200,7 @@ Config::Config(string name, string info, ostream& infoOutput, uint64_t flavours)
 
 Config::~Config() = default;
 
-bool Config::Load(const nlohmann::json& src, ostream& err) {
+bool Config::Load(const json& src, ostream& err) {
     return Impl_->Load(src, err);
 }
 
@@ -220,7 +220,7 @@ vector<const ArgBase*> Config::Args() const {
     return Impl_->Args();
 }
 
-const nlohmann::json& Config::Get() const {
+const json& Config::Get() const {
     return Impl_->Get();
 }
 
