@@ -59,11 +59,6 @@ public:
                     err << arg->ReportedName() << " is a switch, value can not be specified";
                     return false;
                 }
-            } else {
-                if (val.empty()) {
-                    err << arg->ReportedName() << " requires value";
-                    return false;
-                }
             }
             ++count[arg->Name()];
             if (!arg->Parse(data, val, err)) {
@@ -106,20 +101,31 @@ public:
                 a = a.substr(1);
             }
             for (size_t sym = 0; !inc && sym < a.size(); ++sym) {
-                const ArgBase* match = nullptr;
+                bool match = false;
                 for (auto arg: NamedArgs_) {
                     if (MatchShort(sym, *arg, a)) {
-                        match = arg;
-                        if (!arg->IsSwitch()) {
-                            if (Flavours_ & _ShortNoSep) {
-                                val = a.substr(sym + 1);
-                            } else {
+                        match = true;
+                        if (arg->IsSwitch()) {
+                            if (sym + 1 == a.size()) {
+                                ++inc;
+                            } else if (!(Flavours_ & _ShortStacked)) {
+                                err << arg->ReportedName() << " shortcut '" << a[sym] << "' is followed by unexpected symbol";
+                                return false;
+                            }
+                        } else {
+                            ++inc;
+                            if (sym + 1 == a.size()) {
                                 if (Flavours_ & _SpaceSep) {
                                     if (idx + 1 < args.size()) {
                                         ++inc;
                                         val = args[idx + 1];
                                     }
                                 }
+                            } else if (Flavours_ & _ShortNoSep) {
+                                val = a.substr(sym + 1);
+                            } else {
+                                err << arg->ReportedName() << " shortcut '" << a[sym] << "' is followed by unexpected symbol, value is expected";
+                                return false;
                             }
                         }
                         if (!matched(arg, val)) {
@@ -130,12 +136,6 @@ public:
                 }
                 if (!match) {
                     break;
-                }
-                if (sym + 1 == a.size()) {
-                    ++inc;
-                } else if (!(Flavours_ & _ShortStacked)) {
-                    err << match->ReportedName() <<" shortcut '" << a[sym] << "' is followed by unexpected symbol";
-                    return false;
                 }
             }
 
