@@ -23,9 +23,7 @@ namespace clar {
         virtual ~ArgBase();
 
         bool Add(Config& config, std::ostream& err);
-
-        //~ ArgBase& Short(char c);
-        ArgBase& Long(std::string name);
+        ArgBase& Alias(std::string name);
 
         const std::string& Name() const;
         const std::string& Info() const;
@@ -35,8 +33,7 @@ namespace clar {
         bool IsSwitch() const;
         bool IsMultiple() const;
 
-        const std::vector<char>& ShortNames() const;
-        const std::vector<std::string>& LongNames() const;
+        const std::vector<std::string>& Names() const;
 
         std::string ReportedName() const;
 
@@ -54,8 +51,7 @@ namespace clar {
         const bool Free_;
         const Value Value_;
 
-        std::vector<char> ShortNames_;
-        std::vector<std::string> LongNames_;
+        std::vector<std::string> Names_;
 
         Config* Config_;
     };

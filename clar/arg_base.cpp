@@ -1,6 +1,6 @@
 #include <sstream>
 
-#include "clar.h"
+#include "config.h"
 #include "arg_base.h"
 
 using namespace std;
@@ -27,31 +27,24 @@ bool ArgBase::Add(Config& config, ostream& err) {
         return false;
     }
     if (!IsFree()) {
-        for (auto n: LongNames_) {
+        for (auto n: Names_) {
             if (!Config_->Alias(Name_, n, err)) {
                 return false;
             }
         }
-        LongNames_.push_back(Name_);
+        Names_.push_back(Name_);
     }
     return true;
 }
 
-//~ ArgBase& ArgBase::Short(char c) {
-    //~ if (!Config_.Alias()) {
-    //~ }
-    //~ ShortNames_.push_back(c);
-    //~ return *this;
-//~ }
-
-ArgBase& ArgBase::Long(string name) {
+ArgBase& ArgBase::Alias(string name) {
     if (Config_) {
         ostringstream err;
         if (!Config_->Alias(Name_, name, err)) {
             throw domain_error(err.str());
         }
     }
-    LongNames_.push_back(name);
+    Names_.push_back(name);
     return *this;
 }
 
@@ -79,12 +72,8 @@ bool ArgBase::IsMultiple() const {
     return Value_ == _Multiple;
 }
 
-const vector<char>& ArgBase::ShortNames() const {
-    return ShortNames_;
-}
-
-const vector<string>& ArgBase::LongNames() const {
-    return LongNames_;
+const vector<string>& ArgBase::Names() const {
+    return Names_;
 }
 
 string ArgBase::ReportedName() const {

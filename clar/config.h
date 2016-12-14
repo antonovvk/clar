@@ -14,25 +14,31 @@ namespace clar {
         _LongDoubleDash = 0x0001,   // --foo
         _LongSingleDash = 0x0002,   // -foo
         _LongNoDash     = 0x0004,   // foo
-        _ShortStacked   = 0x0008,   // -a -b equivalent to -ab
-        _ShortSpaceSep  = 0x0010,   // -a val equivalent to -aval
-        _ShortNoSep     = 0x0020,   // -a val equivalent to -aval
-        _LongSpaceSep   = 0x0040,   // --foo val
-        _LongEqualsSep  = 0x0080,   // --foo=val
-        _HelpAction     = 0x0100,   // --help for help
-        _VersionAction  = 0x0200,   // --version for version
-        _ConfigAction   = 0x0400,   // --config for config
+
+        _SpaceSep       = 0x0010,   // --foo val
+        _EqualsSep      = 0x0020,   // --foo=val
+
+        _ShortDash      = 0x0100,   // -a
+        _ShortNoDash    = 0x0200,   // a
+        _ShortStacked   = 0x0400,   // -a -b equivalent to -ab
+        _ShortNoSep     = 0x0800,   // -a val equivalent to -aval
+
+        _HelpAction     = 0x001000, // --help for help
+        _VersionAction  = 0x002000, // --version for version
+        _ConfigAction   = 0x004000, // --config for config
         _CommonActions  = _HelpAction | _VersionAction | _ConfigAction,
-        _HelpShort      = 0x1000,   // -h alias for --help
-        _VersionShort   = 0x2000,   // -v alias for --version
-        _ConfigShort    = 0x4000,   // -c alias for --config
+
+        _HelpShort      = 0x010000, // -h alias for --help
+        _VersionShort   = 0x020000, // -v alias for --version
+        _ConfigShort    = 0x040000, // -c alias for --config
         _CommonActShort = _HelpShort | _VersionShort | _ConfigShort,
+
         _UnixFlavours =
             _LongDoubleDash |
+            _SpaceSep |
+            _ShortDash |
             _ShortStacked |
-            _ShortSpaceSep |
             _ShortNoSep |
-            _LongSpaceSep |
             _CommonActions |
             _CommonActShort
         ,

@@ -5,7 +5,7 @@
 #include <vector>
 #include <sstream>
 
-#include "clar.h"
+#include "config.h"
 
 namespace clar {
     template <typename Action>

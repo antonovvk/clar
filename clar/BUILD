@@ -1,7 +1,7 @@
 cc_library(
     name = "clar",
     hdrs = [
-        "clar.h",
+        "config.h",
     ],
     srcs = [
         "arg_base.h",
@@ -10,7 +10,7 @@ cc_library(
         "arg_impl.cpp",
         "actions.h",
         "actions.cpp",
-        "clar.cpp",
+        "config.cpp",
     ],
     copts = [
         "-std=c++11",
@@ -23,19 +23,4 @@ cc_library(
         "@json//:json",
     ],
     visibility = ["//visibility:public"],
-)
-
-cc_test(
-    name = "clar_ut",
-    srcs = ["clar_ut.cpp"],
-    copts = [
-        "-Iexternal/gtest/googletest/include",
-    ],
-    deps = [
-        "@gtest//:main",
-        ":clar",
-    ],
-    linkopts = [
-        "-lm",
-    ],
 )
