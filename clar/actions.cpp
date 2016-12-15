@@ -1,3 +1,6 @@
+#include <fstream>
+#include <sstream>
+
 #include "actions.h"
 
 using namespace std;
@@ -5,7 +8,13 @@ using namespace std;
 namespace clar {
 
 ArgPtr CreateHelpAction(Config& config, string name, string info, ostream& out, bool testing) {
-    return CreateActionArg(config, "help", "Print help and exit", [&config, name, info, &out, testing]() {
+    return CreateActionArg(config, "help", "Print help and exit", ArgBase::_None, [
+        &config,
+        name,
+        info,
+        &out,
+        testing
+    ] (const string&, ostream&) {
         out << name << ": " << info << endl;
         out << "Usage: " << name << " [options]";
         vector<const ArgBase*> req;
@@ -60,6 +69,38 @@ ArgPtr CreateHelpAction(Config& config, string name, string info, ostream& out, 
         if (!testing) {
             exit(0);
         }
+        return true;
+    });
+}
+
+ArgPtr CreateLoadAction(Config& config, string testData) {
+    return CreateActionArg(config, "config", "Load config JSON from file", ArgBase::_Single, [&config, testData] (const string& val, ostream& err) {
+        if (val.empty()) {
+            err << "Empty config file name";
+            return false;
+        }
+        ostringstream content;
+        if (!testData.empty()) {
+            content << testData;
+        } else {
+            ifstream file(val);
+            if (!file) {
+                err << "Failed to open config file: " << val;
+                return false;
+            }
+            content << file.rdbuf();
+        }
+        json data;
+        try {
+            data = json::parse(content.str());
+        } catch (const exception& e) {
+            err << "Failed to parse JSON config: " << e.what();
+            return false;
+        }
+        if (!config.Load(data, err)) {
+            return false;
+        }
+        return true;
     });
 }
 

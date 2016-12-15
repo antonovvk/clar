@@ -11,14 +11,14 @@ namespace clar {
     template <typename Action>
     class ActionArg: public ArgBase {
     public:
-        ActionArg(std::string name, std::string info, Action action)
-            : ArgBase(name, info, false, false, ArgBase::_None)
+        ActionArg(std::string name, std::string info, ArgBase::Value value, Action action)
+            : ArgBase(name, info, false, false, value)
             , Action_(action)
         {
         }
 
-        ActionArg(Config& config, std::string name, std::string info, Action action)
-            : ActionArg(name, info, action)
+        ActionArg(Config& config, std::string name, std::string info, ArgBase::Value value, Action action)
+            : ActionArg(name, info, value, action)
         {
             std::ostringstream err;
             if (!Add(config, err)) {
@@ -35,9 +35,8 @@ namespace clar {
             return false;
         }
 
-        virtual bool Parse(json&, const std::string&, std::ostream&) const override {
-            Action_();
-            return true;
+        virtual bool Parse(json&, const std::string& val, std::ostream& err) const override {
+            return Action_(val, err);
         }
 
     private:
@@ -45,15 +44,15 @@ namespace clar {
     };
 
     template <typename Action>
-    ArgPtr CreateActionArg(std::string name, std::string info, Action action) {
-        return ArgPtr(new ActionArg<Action>(name, info, action));
+    ArgPtr CreateActionArg(std::string name, std::string info, ArgBase::Value value, Action action) {
+        return ArgPtr(new ActionArg<Action>(name, info, value, action));
     }
 
     template <typename Action>
-    ArgPtr CreateActionArg(Config& config, std::string name, std::string info, Action action) {
-        return ArgPtr(new ActionArg<Action>(config, name, info, action));
+    ArgPtr CreateActionArg(Config& config, std::string name, std::string info, ArgBase::Value value, Action action) {
+        return ArgPtr(new ActionArg<Action>(config, name, info, value, action));
     }
 
     ArgPtr CreateHelpAction(Config& config, std::string name, std::string info, std::ostream& out, bool testing = false);
-
+    ArgPtr CreateLoadAction(Config& config, std::string testData = std::string());
 } // namespace clar

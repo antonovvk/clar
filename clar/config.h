@@ -42,7 +42,6 @@ namespace clar {
             _CommonActions |
             _CommonActShort
         ,
-        _DoNotExitOnHelp    = 0x00010000,
     };
 
     class Config {
@@ -53,7 +52,8 @@ namespace clar {
             std::string name = "",
             std::string info = "",
             std::ostream& infoOutput = std::cout,
-            uint64_t flavours = _UnixFlavours
+            uint64_t flavours = _UnixFlavours,
+            const json& testing = json::object()
         );
 
         ~Config();
@@ -103,8 +103,15 @@ namespace clar {
             return impl::Parse<T>(res, *this, val, err);
         }
 
+        operator T () const {
+            return Get();
+        }
+
         T Get() const {
-            return Config_ ? impl::Get<T>(Name_, Config_->Get(), Default_) : Default_;
+            if (!Config_) {
+                throw std::domain_error(ArgBase::ReportedName() + " wasn't added to config");
+            }
+            return impl::Get<T>(Name_, Config_->Get(), Default_);
         }
 
     protected:

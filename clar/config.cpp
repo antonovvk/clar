@@ -45,12 +45,15 @@ public:
     }
 
     bool Parse(int argc, char* argv[], ostream& err) {
-        return false;
+        vector<string> args;
+        for (int i = 1; i < argc; ++i) {
+            args.push_back(argv[i]);
+        }
+        return Parse(args, err);
     }
 
     bool Parse(const vector<string>& args, ostream& err) {
-        auto data = Data_;
-
+        json data;
         unordered_map<string, size_t> count;
 
         auto matched = [&data, &count, &err](const ArgBase* arg, const string& val) {
@@ -156,9 +159,13 @@ public:
             }
             idx += inc;
         }
+        auto tmp = Data_;
+        for (auto it = data.begin(); it != data.end(); ++it) {
+            tmp[it.key()] = it.value();
+        }
 
         for (auto arg: Args()) {
-            size_t c = data.count(arg->Name());
+            size_t c = tmp.count(arg->Name());
             auto it = count.find(arg->Name());
             if (it != count.end()) {
                 if (it->second > 1 && !arg->IsMultiple()) {
@@ -172,8 +179,7 @@ public:
                 return false;
             }
         }
-
-        Data_ = data;
+        Data_ = tmp;
         return true;
     }
 
@@ -277,11 +283,14 @@ private:
     unordered_map<string, const ArgBase*> ArgMap_;
 };
 
-Config::Config(string name, string info, ostream& infoOutput, uint64_t flavours)
+Config::Config(string name, string info, ostream& infoOutput, uint64_t flavours, const json& testing)
     : Impl_(new Impl(flavours))
 {
     if (flavours & _HelpAction) {
-        Impl_->Hold(CreateHelpAction(*this, name, info, infoOutput, flavours & _DoNotExitOnHelp));
+        Impl_->Hold(CreateHelpAction(*this, name, info, infoOutput, testing.count("test-help")));
+    }
+    if (flavours & _ConfigAction) {
+        Impl_->Hold(CreateLoadAction(*this, testing.count("test-load") ? testing["test-load"] : ""));
     }
 }
 

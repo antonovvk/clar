@@ -4,6 +4,41 @@
 using namespace std;
 using namespace clar;
 
+TEST(API, NonAddedArg) {
+    NamedArg<bool> foo("foo", "FOO");
+    try {
+        foo.Get();
+        FAIL();
+    } catch (const exception& e) {
+        //~ cerr << e.what() << endl;
+        EXPECT_EQ("Option 'foo' wasn't added to config", string(e.what()));
+    }
+}
+
+TEST(API, DirectCast) {
+    Config cfg;
+    NamedArg<int, true> foo(cfg, "foo", "FOO");
+    NamedArg<uint32_t> bar(cfg, "bar", "BAR", 100500);
+    NamedArg<vector<string>> wat(cfg, "wat", "WAT");
+
+    ostringstream err;
+    auto ok = cfg.Parse({ "--foo", "-1", "--bar", "1", "--wat",  "A", "--wat", "B" }, err);
+    //~ cerr << err.str() << endl;
+
+    auto getInt = [](int val) { return val; };
+    auto getUint = [](uint32_t val) { return val; };
+    auto getVector = [](vector<string> vec) { return vec; };
+
+    EXPECT_EQ(true, ok);
+    EXPECT_EQ(-1, getInt(foo));
+    EXPECT_EQ(1u, getUint(bar));
+    EXPECT_EQ(2u, getVector(wat).size());
+    EXPECT_EQ("A", getVector(wat)[0]);
+    EXPECT_EQ("B", getVector(wat)[1]);
+
+    //~ cerr << setw(4) << cfg.Get() << endl;
+}
+
 TEST(Config, LoadBooleanRequiredSuccess) {
     Config cfg;
     NamedArg<bool, true> foo(cfg, "foo", "FOO");
@@ -15,6 +50,27 @@ TEST(Config, LoadBooleanRequiredSuccess) {
     EXPECT_EQ(true, ok);
     EXPECT_EQ(true, foo.Get());
     EXPECT_EQ(true, bar.Get());
+}
+
+TEST(Config, LoadOverride) {
+    Config cfg;
+    NamedArg<int, true> foo(cfg, "foo", "FOO");
+    NamedArg<vector<int>> bar(cfg, "bar", "BAR");
+
+    ostringstream err;
+    auto ok = cfg.Load({ { "foo", 1 }, { "bar", { 2, 3, 4 } } }, err);
+    //~ cerr << err.str() << endl;
+    EXPECT_EQ(true, ok);
+    EXPECT_EQ(1, foo.Get());
+    EXPECT_EQ(3u, bar.Get().size());
+
+    ok = cfg.Parse({ "--foo", "2", "--bar", "5", "--bar", "6" }, err);
+    //~ cerr << err.str() << endl;
+    EXPECT_EQ(true, ok);
+    EXPECT_EQ(2, foo.Get());
+    EXPECT_EQ(2u, bar.Get().size());
+    EXPECT_EQ(5, bar.Get()[0]);
+    EXPECT_EQ(6, bar.Get()[1]);
 }
 
 TEST(Config, LoadBooleanRequiredFailure) {
@@ -113,7 +169,7 @@ TEST(Config, LoadIntArrayFailure) {
 
 TEST(ActionArgs, BasicHelp) {
     ostringstream out;
-    Config cfg("test", "This is HELP test", out, _UnixFlavours | _DoNotExitOnHelp);
+    Config cfg("test", "This is HELP test", out, _UnixFlavours, { { "test-help", true } });
     NamedArg<int, true> foo(cfg, "foo", "FOO");
     FreeArg<string, true> bar(cfg, "bar", "BAR");
     FreeArg<vector<string>> jar(cfg, "jar", "JAR");
@@ -134,8 +190,33 @@ TEST(ActionArgs, BasicHelp) {
         "\n"
         "Optional arguments:\n"
         "  --help\t-- Print help and exit\n"
+        "  --config <>\t-- Load config JSON from file\n"
         "  --wat <>\t-- WAT\n"
         "  jar\t-- JAR\n",
         out.str()
     );
+}
+
+TEST(ActionArgs, BasicConfig) {
+    json data = {
+        { "foo", 1 },
+        { "bar", "A" },
+        { "jar", { "B", "C" } },
+        { "wat", 2 },
+    };
+
+    ostringstream out;
+    Config cfg("test", "This is HELP test", out, _UnixFlavours, { { "test-load", data.dump() } });
+    NamedArg<int, true> foo(cfg, "foo", "FOO");
+    FreeArg<string, true> bar(cfg, "bar", "BAR");
+    FreeArg<vector<string>> jar(cfg, "jar", "JAR");
+    NamedArg<int> wat(cfg, "wat", "WAT");
+
+    ostringstream err;
+    auto ok = cfg.Parse({ "--config", "test" }, err);
+    cerr << err.str() << endl;
+    EXPECT_EQ(true, ok);
+    EXPECT_EQ(true, (data == cfg.Get()));
+
+    //~ cerr << setw(4) << cfg.Get() << endl;
 }
