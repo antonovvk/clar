@@ -107,6 +107,13 @@ namespace clar {
             return Get();
         }
 
+        bool operator! () const {
+            if (!Config_) {
+                throw std::domain_error(ArgBase::ReportedName() + " wasn't added to config");
+            }
+            return Config_->Get().count(Name_) == 0;
+        }
+
         T Get() const {
             if (!Config_) {
                 throw std::domain_error(ArgBase::ReportedName() + " wasn't added to config");

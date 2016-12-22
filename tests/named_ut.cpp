@@ -13,7 +13,9 @@ TEST(NamedArgs, BooleanRequiredSucces) {
     auto ok = cfg.Parse({ "--foo" }, err);
     //~ cerr << err.str() << endl;
     EXPECT_EQ(true, ok);
+    EXPECT_EQ(false, !foo);
     EXPECT_EQ(true, foo.Get());
+    EXPECT_EQ(true, !bar);
     EXPECT_EQ(true, bar.Get());
 
     //~ cerr << setw(4) << cfg.Get() << endl;
@@ -28,6 +30,8 @@ TEST(NamedArgs, IntegerRequiredSucces) {
     auto ok = cfg.Parse({ "--foo", "-1", "--bar", "1" }, err);
     //~ cerr << err.str() << endl;
     EXPECT_EQ(true, ok);
+    EXPECT_EQ(false, !foo);
+    EXPECT_EQ(false, !bar);
     EXPECT_EQ(-1, foo.Get());
     EXPECT_EQ(1u, bar.Get());
 

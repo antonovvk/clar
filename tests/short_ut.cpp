@@ -13,7 +13,9 @@ TEST(ShortArgs, BooleanRequiredSucces) {
     auto ok = cfg.Parse({ "-f" }, err);
     //~ cerr << err.str() << endl;
     EXPECT_EQ(true, ok);
+    EXPECT_EQ(false, !foo);
     EXPECT_EQ(true, foo.Get());
+    EXPECT_EQ(true, !bar);
     EXPECT_EQ(true, bar.Get());
 
     //~ cerr << setw(4) << cfg.Get() << endl;
