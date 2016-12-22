@@ -53,6 +53,11 @@ namespace clar {
         return ArgPtr(new ActionArg<Action>(config, name, info, value, action));
     }
 
+    template <typename Action>
+    ArgPtr CreateActionSwitch(Config& config, std::string name, std::string info, Action action) {
+        return ArgPtr(new ActionArg<Action>(config, name, info, ArgBase::_None, action));
+    }
+
     ArgPtr CreateHelpAction(Config& config, std::string name, std::string info, std::ostream& out, bool testing = false);
     ArgPtr CreateLoadAction(Config& config, std::string testData = std::string());
 } // namespace clar

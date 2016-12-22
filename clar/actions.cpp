@@ -8,7 +8,7 @@ using namespace std;
 namespace clar {
 
 ArgPtr CreateHelpAction(Config& config, string name, string info, ostream& out, bool testing) {
-    return CreateActionArg(config, "help", "Print help and exit", ArgBase::_None, [
+    return CreateActionSwitch(config, "help", "Print help and exit", [
         &config,
         name,
         info,

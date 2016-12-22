@@ -1,6 +1,7 @@
 alias(
     name = "lib",
     actual = "//clar",
+    visibility = ["//visibility:public"],
 )
 
 alias(
