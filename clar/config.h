@@ -121,6 +121,14 @@ namespace clar {
             return impl::Get<T>(Name_, Config_->Get(), Default_);
         }
 
+        const T& Default() const {
+            return Default_;
+        }
+
+        void Default(T val) {
+            Default_ = val;
+        }
+
     protected:
         NamedArg(bool free, std::string name, std::string info, T def)
             : ArgBase(name, info, Required, free, impl::RequiresValue<T>())
@@ -132,7 +140,7 @@ namespace clar {
         }
 
     private:
-        const T Default_;
+        T Default_;
     };
 
     template <typename T, char Short = 0>
