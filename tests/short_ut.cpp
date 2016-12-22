@@ -21,8 +21,8 @@ TEST(ShortArgs, BooleanRequiredSucces) {
 
 TEST(ShortArgs, IntegerRequiredSucces) {
     Config cfg;
-    NamedArg<int, true> foo(cfg, "f", "FOO");
-    NamedArg<uint32_t> bar(cfg, "b", "BAR", 100500);
+    NamedArg<int, true, 'f'> foo(cfg, "foo", "FOO");
+    NamedOpt<uint32_t, 'b'> bar(cfg, "bar", "BAR", 100500);
 
     ostringstream err;
     auto ok = cfg.Parse({ "-f", "-1", "-b1" }, err);

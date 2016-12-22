@@ -74,7 +74,7 @@ namespace clar {
         std::unique_ptr<Impl> Impl_;
     };
 
-    template <typename T, bool Required = false>
+    template <typename T, bool Required = false, char Short = 0>
     class NamedArg: public ArgBase {
     public:
         NamedArg(std::string name, std::string info, T def = T())
@@ -119,11 +119,17 @@ namespace clar {
             : ArgBase(name, info, Required, free, impl::RequiresValue<T>())
             , Default_(def)
         {
+            if (Short) {
+                Alias(std::string(1, Short));
+            }
         }
 
     private:
         const T Default_;
     };
+
+    template <typename T, char Short = '0'>
+    using NamedOpt = NamedArg<T, false, Short>;
 
     template <typename T, bool Required = false>
     class FreeArg: public NamedArg<T, Required> {
