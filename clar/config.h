@@ -65,6 +65,8 @@ namespace clar {
 
         std::vector<const ArgBase*> Args() const;
         const json& Get() const;
+        void Save(json& res) const;
+        void Dump(std::ostream& out, int indent) const;
 
     private:
         bool Add(const ArgBase* arg, std::ostream& err);
@@ -93,6 +95,10 @@ namespace clar {
 
         virtual ~NamedArg() override
         {
+        }
+
+        virtual void Save(json& res) const override {
+            res[Name_] = Get();
         }
 
         virtual bool Check(const json& val, std::ostream& err) const override {
@@ -136,6 +142,9 @@ namespace clar {
         {
             if (Short) {
                 Alias(std::string(1, Short));
+            }
+            if (ArgBase::Meta().empty()) {
+                ArgBase::Meta(impl::Meta<T>());
             }
         }
 

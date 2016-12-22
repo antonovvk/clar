@@ -13,6 +13,11 @@ namespace impl {
     }
 
     template <>
+    string Meta<bool>() {
+        return "";
+    }
+
+    template <>
     bool Get<bool>(const string& name, const json& data, bool def) {
         auto it = data.find(name);
         return it != data.end() ? it.value().get<bool>() : def;
@@ -36,6 +41,11 @@ namespace impl {
     template <>
     ArgBase::Value RequiresValue<json>() {
         return ArgBase::_Single;
+    }
+
+    template <>
+    string Meta<json>() {
+        return "JSON";
     }
 
     template <>
@@ -204,6 +214,10 @@ namespace impl {
     ArgBase::Value RequiresValue<type>() { \
         return ArgBase::_Single; \
     } \
+    template <>\
+    string Meta<type>() { \
+        return #type; \
+    } \
     template <> \
     type Get<type>(const string& name, const json& data, type def) { \
         return SingleValueTraits<type>::Get(name, data, def); \
@@ -240,6 +254,10 @@ namespace impl {
     template <> \
     ArgBase::Value RequiresValue<vector<type>>() { \
         return ArgBase::_Multiple; \
+    } \
+    template <>\
+    string Meta<vector<type>>() { \
+        return #type; \
     } \
     template <> \
     vector<type> Get<vector<type>>(const string& name, const json& data, vector<type> def) { \

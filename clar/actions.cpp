@@ -29,16 +29,16 @@ ArgPtr CreateHelpAction(Config& config, string name, string info, ostream& out, 
                 }
                 out << arg->Name();
                 if (arg->IsFree()) {
-                    out << ">";
+                    out << " " << arg->Meta() << ">";
                 } else if (!arg->IsSwitch()) {
-                    out << " <>";
+                    out << " <" << arg->Meta() << ">";
                 }
                 req.push_back(arg);
             } else {
                 if (arg->IsFree()) {
-                    out << " [" << arg->Name();
+                    out << " [" << arg->Name() << " " << arg->Meta();
                     if (arg->IsMultiple()) {
-                        out << "1 ... " << arg->Name() << "N";
+                        out << " 1 ... " << arg->Name() << " " << arg->Meta() << " N";
                     }
                     out << "]";
                 }
@@ -47,24 +47,56 @@ ArgPtr CreateHelpAction(Config& config, string name, string info, ostream& out, 
         }
         out << endl;
 
-        auto dump = [&out](const ArgBase* arg) {
+        auto dump = [](ostream& out, const ArgBase* arg, size_t maxLen) {
+            size_t start = out.tellp();
             out << "  ";
-            if (!arg->IsFree()) {
+            if (arg->IsFree()) {
+                out << (arg->IsRequired() ? "<" : "[");
+            } else {
+                for (auto n: arg->Names()) {
+                    if (n.size() == 1) {
+                        out << "-" << n << ", ";
+                    }
+                }
+                for (auto n: arg->Names()) {
+                    if (n.size() != 1 && n != arg->Name()) {
+                        out << "--" << n << ", ";
+                    }
+                }
                 out << "--";
             }
             out << arg->Name();
-            if (!arg->IsFree() && !arg->IsSwitch()) {
-                out << " <>";
+            if (arg->IsFree()) {
+                out << " " << arg->Meta();
+                out << (arg->IsRequired() ? ">" : "]");
+            } else if (!arg->IsSwitch()) {
+                out << " <" << arg->Meta() << ">";
             }
-            out << "\t-- " << arg->Info() << endl;
+            size_t finish = out.tellp();
+            if (maxLen) {
+                out << string(maxLen - (finish - start), ' ');
+            }
+            out << " -- ";
+            if (arg->IsMultiple()) {
+                out << "(multiple) ";
+            }
+            out << arg->Info() << endl;
+            return finish - start;
         };
+
+        size_t maxLen = 0;
+        for (auto arg: config.Args()) {
+            stringstream tmp;
+            maxLen = max(maxLen, dump(tmp, arg, 0));
+        }
+
         out << endl << "Required arguments:" << endl;
         for (auto arg: req) {
-            dump(arg);
+            dump(out, arg, maxLen);
         }
         out << endl << "Optional arguments:" << endl;
         for (auto arg: opt) {
-            dump(arg);
+            dump(out, arg, maxLen);
         }
         if (!testing) {
             exit(0);
@@ -74,7 +106,7 @@ ArgPtr CreateHelpAction(Config& config, string name, string info, ostream& out, 
 }
 
 ArgPtr CreateLoadAction(Config& config, string testData) {
-    return CreateActionArg(config, "config", "Load config JSON from file", ArgBase::_Single, [&config, testData] (const string& val, ostream& err) {
+    auto a = CreateActionArg(config, "config", "Load config JSON from file", ArgBase::_Single, [&config, testData] (const string& val, ostream& err) {
         if (val.empty()) {
             err << "Empty config file name";
             return false;
@@ -102,6 +134,8 @@ ArgPtr CreateLoadAction(Config& config, string testData) {
         }
         return true;
     });
+    a->Meta("file name");
+    return a;
 }
 
 } // namespace clar

@@ -173,7 +173,7 @@ TEST(ActionArgs, BasicHelp) {
     NamedArg<int, true> foo(cfg, "foo", "FOO");
     FreeArg<string, true> bar(cfg, "bar", "BAR");
     FreeArg<vector<string>> jar(cfg, "jar", "JAR");
-    NamedArg<int> wat(cfg, "wat", "WAT");
+    NamedOpt<vector<int>, 'W'> wat(cfg, "wat", "WAT");
 
     ostringstream err;
     cfg.Parse({ "--help" }, err);
@@ -182,17 +182,17 @@ TEST(ActionArgs, BasicHelp) {
 
     EXPECT_EQ(
         "test: This is HELP test\n"
-        "Usage: test [options] --foo <> <bar> [jar1 ... jarN]\n"
+        "Usage: test [options] --foo <int> <bar string> [jar string 1 ... jar string N]\n"
         "\n"
         "Required arguments:\n"
-        "  --foo <>\t-- FOO\n"
-        "  bar\t-- BAR\n"
+        "  --foo <int>              -- FOO\n"
+        "  <bar string>             -- BAR\n"
         "\n"
         "Optional arguments:\n"
-        "  --help\t-- Print help and exit\n"
-        "  --config <>\t-- Load config JSON from file\n"
-        "  --wat <>\t-- WAT\n"
-        "  jar\t-- JAR\n",
+        "  -h, --help               -- Print help and exit\n"
+        "  -c, --config <file name> -- Load config JSON from file\n"
+        "  -W, --wat <int>          -- (multiple) WAT\n"
+        "  [jar string]             -- (multiple) JAR\n",
         out.str()
     );
 }
@@ -207,7 +207,7 @@ TEST(ActionArgs, BasicConfig) {
 
     ostringstream out;
     Config cfg("test", "This is HELP test", out, _UnixFlavours, { { "test-load", data.dump() } });
-    NamedArg<int, true> foo(cfg, "foo", "FOO");
+    NamedArg<int, true> foo(cfg, "foo", "FOO", 1);
     FreeArg<string, true> bar(cfg, "bar", "BAR");
     FreeArg<vector<string>> jar(cfg, "jar", "JAR");
     NamedArg<int> wat(cfg, "wat", "WAT");
@@ -217,6 +217,14 @@ TEST(ActionArgs, BasicConfig) {
     //~ cerr << err.str() << endl;
     EXPECT_EQ(true, ok);
     EXPECT_EQ(true, (data == cfg.Get()));
+
+    ok = cfg.Parse({ "A", "B", "C", "--wat", "2" }, err);
+    EXPECT_EQ(true, ok);
+    json saved;
+    cfg.Save(saved);
+    // Check that default values are placed in saved config
+    //~ cerr << setw(4) << saved << endl;
+    EXPECT_EQ(true, (data == saved));
 
     //~ cerr << setw(4) << cfg.Get() << endl;
 }

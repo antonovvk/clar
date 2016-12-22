@@ -13,6 +13,9 @@ namespace impl {
     ArgBase::Value RequiresValue();
 
     template <typename T>
+    std::string Meta();
+
+    template <typename T>
     T Get(const std::string&, const json&, T def);
 
     template <typename T>

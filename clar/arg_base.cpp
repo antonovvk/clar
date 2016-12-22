@@ -48,12 +48,21 @@ ArgBase& ArgBase::Alias(string name) {
     return *this;
 }
 
+ArgBase& ArgBase::Meta(string meta) {
+    Meta_ = meta;
+    return *this;
+}
+
 const string& ArgBase::Name() const {
     return Name_;
 }
 
 const string& ArgBase::Info() const {
     return Info_;
+}
+
+const string& ArgBase::Meta() const {
+    return Meta_;
 }
 
 bool ArgBase::IsFree() const {

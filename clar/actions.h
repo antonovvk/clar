@@ -30,6 +30,10 @@ namespace clar {
         {
         }
 
+        virtual void Save(json&) const override {
+            return;
+        }
+
         virtual bool Check(const json&, std::ostream& err) const override {
             err << ReportedName() << " is an action argument and can not be loaded from config";
             return false;

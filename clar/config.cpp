@@ -208,6 +208,18 @@ public:
         return Data_;
     }
 
+    void Save(json& res) const {
+        for (auto arg: Args()) {
+            arg->Save(res);
+        }
+    }
+
+    void Dump(ostream& out, int indent) const {
+        json saved;
+        Save(saved);
+        out << saved.dump(indent);
+    }
+
     bool Add(const ArgBase* arg, ostream& err) {
         if (!arg) {
             throw domain_error("Config::Impl::Add(): Null argument pointer");
@@ -287,10 +299,18 @@ Config::Config(string name, string info, ostream& infoOutput, uint64_t flavours,
     : Impl_(new Impl(flavours))
 {
     if (flavours & _HelpAction) {
-        Impl_->Hold(CreateHelpAction(*this, name, info, infoOutput, testing.count("test-help")));
+        auto a = CreateHelpAction(*this, name, info, infoOutput, testing.count("test-help"));
+        if (flavours & _HelpShort) {
+            a->Alias("h");
+        }
+        Impl_->Hold(move(a));
     }
     if (flavours & _ConfigAction) {
-        Impl_->Hold(CreateLoadAction(*this, testing.count("test-load") ? testing["test-load"] : ""));
+        auto a = CreateLoadAction(*this, testing.count("test-load") ? testing["test-load"] : "");
+        if (flavours & _ConfigShort) {
+            a->Alias("c");
+        }
+        Impl_->Hold(move(a));
     }
 }
 
@@ -318,6 +338,14 @@ vector<const ArgBase*> Config::Args() const {
 
 const json& Config::Get() const {
     return Impl_->Get();
+}
+
+void Config::Save(json& res) const {
+    return Impl_->Save(res);
+}
+
+void Config::Dump(ostream& out, int indent) const {
+    return Impl_->Dump(out, indent);
 }
 
 bool Config::Add(const ArgBase* arg, ostream& err) {
