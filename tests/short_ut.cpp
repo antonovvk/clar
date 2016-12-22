@@ -22,16 +22,19 @@ TEST(ShortArgs, BooleanRequiredSucces) {
 }
 
 TEST(ShortArgs, IntegerRequiredSucces) {
-    Config cfg;
-    NamedArg<int, true, 'f'> foo(cfg, "foo", "FOO");
-    NamedOpt<uint32_t, 'b'> bar(cfg, "bar", "BAR", 100500);
+    // Another way to organize config
+    struct TestConfig: public Config {
+        NamedArg<int, true, 'f'> Foo_ = { *this, "foo", "FOO" };
+        NamedOpt<uint32_t, 'b'> Bar_ = { *this, "bar", "BAR", 100500 };
+    };
 
+    TestConfig cfg;
     ostringstream err;
     auto ok = cfg.Parse({ "-f", "-1", "-b1" }, err);
     //~ cerr << err.str() << endl;
     EXPECT_EQ(true, ok);
-    EXPECT_EQ(-1, foo.Get());
-    EXPECT_EQ(1u, bar.Get());
+    EXPECT_EQ(-1, cfg.Foo_.Get());
+    EXPECT_EQ(1u, cfg.Bar_.Get());
 
     //~ cerr << setw(4) << cfg.Get() << endl;
 }
