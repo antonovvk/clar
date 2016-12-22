@@ -100,10 +100,12 @@ public:
                 }
             }
 
-            if (Flavours_ & _ShortDash) {
+            bool checkShort = false;
+            if ((Flavours_ & _ShortDash) && !a.empty() && a[0] == '-') {
                 a = a.substr(1);
+                checkShort = true;
             }
-            for (size_t sym = 0; !inc && sym < a.size(); ++sym) {
+            for (size_t sym = 0; checkShort && !inc && sym < a.size(); ++sym) {
                 bool match = false;
                 for (auto arg: NamedArgs_) {
                     if (MatchShort(sym, *arg, a)) {

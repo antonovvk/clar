@@ -121,6 +121,21 @@ TEST(ShortArgs, StackedSwitchesSuccess) {
     //~ cerr << setw(4) << cfg.Get() << endl;
 }
 
+TEST(ShortArgs, ValueStringShortcutChars) {
+    Config cfg;
+    NamedOpt<bool, 'f'> foo(cfg, "foo", "FOO");
+    FreeArg<string> bar(cfg, "bar", "BAR");
+
+    ostringstream err;
+    auto ok = cfg.Parse({ "bf" }, err);
+    //~ cerr << err.str() << endl;
+    EXPECT_EQ(true, ok);
+    EXPECT_EQ(true, !foo);
+    EXPECT_EQ("bf", bar.Get());
+
+    //~ cerr << setw(4) << cfg.Get() << endl;
+}
+
 TEST(ShortArgs, StackedUnknownArg) {
     Config cfg;
     NamedArg<bool> foo(cfg, "f", "FOO");
