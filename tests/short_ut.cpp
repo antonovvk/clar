@@ -7,7 +7,7 @@ using namespace clar;
 TEST(ShortArgs, BooleanRequiredSucces) {
     Config cfg;
     NamedArg<bool, true> foo(cfg, "f", "FOO");
-    NamedArg<bool> bar(cfg, "b", "BAR", true);
+    Switch<'b'> bar(cfg, "bar", "BAR", true);
 
     ostringstream err;
     auto ok = cfg.Parse({ "-f" }, err);

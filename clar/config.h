@@ -128,8 +128,11 @@ namespace clar {
         const T Default_;
     };
 
-    template <typename T, char Short = '0'>
+    template <typename T, char Short = 0>
     using NamedOpt = NamedArg<T, false, Short>;
+
+    template <char Short = 0>
+    using Switch = NamedArg<bool, false, Short>;
 
     template <typename T, bool Required = false>
     class FreeArg: public NamedArg<T, Required> {
