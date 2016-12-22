@@ -214,7 +214,7 @@ TEST(ActionArgs, BasicConfig) {
 
     ostringstream err;
     auto ok = cfg.Parse({ "--config", "test" }, err);
-    cerr << err.str() << endl;
+    //~ cerr << err.str() << endl;
     EXPECT_EQ(true, ok);
     EXPECT_EQ(true, (data == cfg.Get()));
 

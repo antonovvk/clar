@@ -16,4 +16,5 @@ cc_test(
     linkopts = [
         "-lm",
     ],
+    visibility = ["//visibility:public"],
 )
