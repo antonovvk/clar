@@ -209,14 +209,14 @@ namespace impl {
         }
     };
 
-#define IMPL_SINGLE(type) \
+#define IMPL_SINGLE(type, meta) \
     template <> \
     ArgBase::Value RequiresValue<type>() { \
         return ArgBase::_Single; \
     } \
     template <>\
     string Meta<type>() { \
-        return #type; \
+        return meta; \
     } \
     template <> \
     type Get<type>(const string& name, const json& data, type def) { \
@@ -231,33 +231,33 @@ namespace impl {
         return SingleValueTraits<type>::Parse(res, arg, str, err); \
     }
 
-    IMPL_SINGLE(char);
-    IMPL_SINGLE(unsigned char);
+    IMPL_SINGLE(char, "char");
+    IMPL_SINGLE(unsigned char, "char");
 
-    IMPL_SINGLE(short);
-    IMPL_SINGLE(unsigned short);
+    IMPL_SINGLE(short, "short");
+    IMPL_SINGLE(unsigned short, "short");
 
-    IMPL_SINGLE(int);
-    IMPL_SINGLE(unsigned int);
+    IMPL_SINGLE(int, "int");
+    IMPL_SINGLE(unsigned int, "uint");
 
-    IMPL_SINGLE(long int);
-    IMPL_SINGLE(unsigned long int);
+    IMPL_SINGLE(long int, "int");
+    IMPL_SINGLE(unsigned long int, "uint");
 
-    IMPL_SINGLE(float);
-    IMPL_SINGLE(double);
+    IMPL_SINGLE(float, "float");
+    IMPL_SINGLE(double, "double");
 
-    IMPL_SINGLE(string);
+    IMPL_SINGLE(string, "string");
 
 #undef IMPL_SINGLE
 
-#define IMPL_MULTI(type) \
+#define IMPL_MULTI(type, meta) \
     template <> \
     ArgBase::Value RequiresValue<vector<type>>() { \
         return ArgBase::_Multiple; \
     } \
     template <>\
     string Meta<vector<type>>() { \
-        return #type; \
+        return meta; \
     } \
     template <> \
     vector<type> Get<vector<type>>(const string& name, const json& data, vector<type> def) { \
@@ -272,16 +272,16 @@ namespace impl {
         return MultiValueTraits<type>::Parse(res, arg, str, err); \
     }
 
-    IMPL_MULTI(int);
-    IMPL_MULTI(unsigned int);
+    IMPL_MULTI(int, "int");
+    IMPL_MULTI(unsigned int, "uint");
 
-    IMPL_MULTI(long int);
-    IMPL_MULTI(unsigned long int);
+    IMPL_MULTI(long int, "int");
+    IMPL_MULTI(unsigned long int, "uint");
 
-    IMPL_MULTI(float);
-    IMPL_MULTI(double);
+    IMPL_MULTI(float, "float");
+    IMPL_MULTI(double, "double");
 
-    IMPL_MULTI(string);
+    IMPL_MULTI(string, "string");
 
 #undef IMPL_MULTI
 

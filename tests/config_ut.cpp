@@ -173,7 +173,7 @@ TEST(ActionArgs, BasicHelp) {
     NamedArg<int, true> foo(cfg, "foo", "FOO");
     FreeArg<string, true> bar(cfg, "bar", "BAR");
     FreeArg<vector<string>> jar(cfg, "jar", "JAR");
-    NamedOpt<vector<int>, 'W'> wat(cfg, "wat", "WAT");
+    NamedOpt<vector<size_t>, 'W'> wat(cfg, "wat", "WAT");
 
     ostringstream err;
     cfg.Parse({ "--help" }, err);
@@ -191,7 +191,7 @@ TEST(ActionArgs, BasicHelp) {
         "Optional arguments:\n"
         "  -h, --help               -- Print help and exit\n"
         "  -c, --config <file name> -- Load config JSON from file\n"
-        "  -W, --wat <int>          -- (multiple) WAT\n"
+        "  -W, --wat <uint>         -- (multiple) WAT\n"
         "  [jar string]             -- (multiple) JAR\n",
         out.str()
     );

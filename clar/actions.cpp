@@ -90,14 +90,16 @@ ArgPtr CreateHelpAction(Config& config, string name, string info, ostream& out, 
             maxLen = max(maxLen, dump(tmp, arg, 0));
         }
 
-        out << endl << "Required arguments:" << endl;
+        ostringstream o;
+        o << endl << "Required arguments:" << endl;
         for (auto arg: req) {
-            dump(out, arg, maxLen);
+            dump(o, arg, maxLen);
         }
-        out << endl << "Optional arguments:" << endl;
+        o << endl << "Optional arguments:" << endl;
         for (auto arg: opt) {
-            dump(out, arg, maxLen);
+            dump(o, arg, maxLen);
         }
+        out << o.str();
         if (!testing) {
             exit(0);
         }
