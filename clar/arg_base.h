@@ -38,6 +38,7 @@ namespace clar {
         const std::vector<std::string>& Names() const;
 
         std::string ReportedName() const;
+        std::string ReportedDefault() const;
 
     protected:
         friend class Config;

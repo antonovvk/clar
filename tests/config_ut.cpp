@@ -171,6 +171,8 @@ TEST(ActionArgs, BasicHelp) {
     ostringstream out;
     Config cfg("test", "This is HELP test", out, _UnixFlavours, { { "test-help", true } });
     NamedArg<int, true> foo(cfg, "foo", "FOO");
+    NamedOpt<string, 'F'> fat(cfg, "fat", "FAT", "CAT");
+    NamedOpt<size_t, 'N'> num(cfg, "num", "NUM", 123);
     FreeArg<string, true> bar(cfg, "bar", "BAR");
     FreeArg<vector<string>> jar(cfg, "jar", "JAR");
     NamedOpt<vector<size_t>, 'W'> wat(cfg, "wat", "WAT");
@@ -191,8 +193,10 @@ TEST(ActionArgs, BasicHelp) {
         "Optional arguments:\n"
         "  -h, --help               -- Print help and exit\n"
         "  -c, --config <file name> -- Load config JSON from file\n"
-        "  -W, --wat <uint>         -- (multiple) WAT\n"
-        "  [jar string]             -- (multiple) JAR\n",
+        "  -F, --fat <string>       -- FAT (default value: \"CAT\")\n"
+        "  -N, --num <uint>         -- NUM (default value: 123)\n"
+        "  -W, --wat <uint>         -- (multiple) WAT (default value: [])\n"
+        "  [jar string]             -- (multiple) JAR (default value: [])\n",
         out.str()
     );
 }

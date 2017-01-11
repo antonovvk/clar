@@ -80,7 +80,7 @@ ArgPtr CreateHelpAction(Config& config, string name, string info, ostream& out, 
             if (arg->IsMultiple()) {
                 out << "(multiple) ";
             }
-            out << arg->Info() << endl;
+            out << arg->Info() << arg->ReportedDefault() << endl;
             return finish - start;
         };
 

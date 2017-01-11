@@ -89,4 +89,15 @@ string ArgBase::ReportedName() const {
     return "Option '" + Name() + "'";
 }
 
+string ArgBase::ReportedDefault() const {
+    if (!IsRequired()) {
+        json def;
+        Save(def);
+        if (def.count(Name())) {
+            return " (default value: " + def[Name()].dump() + ")";
+        }
+    }
+    return "";
+}
+
 } // namespace clar
