@@ -19,6 +19,9 @@ namespace impl {
     T Get(const json&);
 
     template <typename T>
+    void Save(json&, const T&);
+
+    template <typename T>
     bool Check(const json&, std::ostream&);
 
     template <typename T>

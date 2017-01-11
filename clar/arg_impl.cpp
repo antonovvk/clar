@@ -23,6 +23,11 @@ namespace impl {
     }
 
     template <>
+    void Save<bool>(json& res, const bool& val) {
+        res = val;
+    }
+
+    template <>
     bool Check<bool>(const json& val, ostream& err) {
         if (!val.is_boolean()) {
             err << "Expected boolean";
@@ -50,6 +55,11 @@ namespace impl {
     template <>
     char Get<char>(const json& data) {
         return data.get<string>()[0];
+    }
+
+    template <>
+    void Save<char>(json& res, const char& val) {
+        res = string(1, val);
     }
 
     template <>
@@ -84,6 +94,11 @@ namespace impl {
     template <>
     json Get<json>(const json& data) {
         return data;
+    }
+
+    template <>
+    void Save<json>(json& res, const json& val) {
+        res = val;
     }
 
     template <>
@@ -187,6 +202,10 @@ namespace impl {
             return data.get<T>();
         }
 
+        static void Save(json& res, const T& val) {
+            res = val;
+        }
+
         static bool Check(const json& val, ostream& err) {
             if (!CheckValue<is_same<T, string>::value, is_floating_point<T>::value, is_unsigned<T>::value>(val, err)) {
                 return false;
@@ -212,6 +231,13 @@ namespace impl {
                 res.push_back(impl::Get<T>(val));
             }
             return res;
+        }
+
+        static void Save(json& res, const vector<T>& val) {
+            res = json::array();
+            for (auto& v: val) {
+                res.push_back(v);
+            }
         }
 
         static bool Check(const json& val, ostream& err) {
@@ -249,6 +275,10 @@ namespace impl {
     template <> \
     type Get<type>(const json& data) { \
         return SingleValueTraits<type>::Get(data); \
+    } \
+    template <> \
+    void Save<type>(json& res, const type& val) { \
+        return SingleValueTraits<type>::Save(res, val); \
     } \
     template <>\
     bool Check<type>(const json& val, ostream& err) { \
@@ -289,6 +319,10 @@ namespace impl {
     template <> \
     vector<type> Get<vector<type>>(const json& data) { \
         return MultiValueTraits<type>::Get(data); \
+    } \
+    template <> \
+    void Save<vector<type>>(json& res, const vector<type>& val) { \
+        return MultiValueTraits<type>::Save(res, val); \
     } \
     template <>\
     bool Check<vector<type>>(const json& val, ostream& err) { \

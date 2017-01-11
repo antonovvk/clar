@@ -98,7 +98,7 @@ namespace clar {
         }
 
         virtual void Save(json& res) const override {
-            res[Name_] = Get();
+            impl::Save(res[Name_], Get());
         }
 
         virtual bool Check(const json& val, std::ostream& err) const override {

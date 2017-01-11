@@ -173,6 +173,7 @@ TEST(ActionArgs, BasicHelp) {
     NamedArg<int, true> foo(cfg, "foo", "FOO");
     NamedOpt<string, 'F'> fat(cfg, "fat", "FAT", "CAT");
     NamedOpt<size_t, 'N'> num(cfg, "num", "NUM", 123);
+    NamedOpt<char, 'C'> cat(cfg, "cat", "CAT", '@');
     FreeArg<string, true> bar(cfg, "bar", "BAR");
     FreeArg<vector<string>> jar(cfg, "jar", "JAR");
     NamedOpt<vector<size_t>, 'W'> wat(cfg, "wat", "WAT");
@@ -195,6 +196,7 @@ TEST(ActionArgs, BasicHelp) {
         "  -c, --config <file name> -- Load config JSON from file\n"
         "  -F, --fat <string>       -- FAT (default value: \"CAT\")\n"
         "  -N, --num <uint>         -- NUM (default value: 123)\n"
+        "  -C, --cat <char>         -- CAT (default value: \"@\")\n"
         "  -W, --wat <uint>         -- (multiple) WAT (default value: [])\n"
         "  [jar string]             -- (multiple) JAR (default value: [])\n",
         out.str()
@@ -207,6 +209,7 @@ TEST(ActionArgs, BasicConfig) {
         { "bar", "A" },
         { "jar", { "B", "C" } },
         { "wat", 2 },
+        { "cat", "#" },
     };
 
     ostringstream out;
@@ -215,6 +218,7 @@ TEST(ActionArgs, BasicConfig) {
     FreeArg<string, true> bar(cfg, "bar", "BAR");
     FreeArg<vector<string>> jar(cfg, "jar", "JAR");
     NamedArg<int> wat(cfg, "wat", "WAT");
+    NamedOpt<char, 'C'> cat(cfg, "cat", "CAT", '@');
 
     ostringstream err;
     auto ok = cfg.Parse({ "--config", "test" }, err);
