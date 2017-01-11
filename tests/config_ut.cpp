@@ -164,7 +164,7 @@ TEST(Config, LoadIntArrayFailure) {
     auto ok = cfg.Load({ { "foo", { "A", "B", "C" } } }, err);
     //~ cerr << err.str() << endl;
     EXPECT_EQ(false, ok);
-    EXPECT_EQ("Option 'foo': Expected signed integer array in config", err.str());
+    EXPECT_EQ("Option 'foo': Failed to load value: Expected signed integer array", err.str());
 }
 
 TEST(ActionArgs, BasicHelp) {

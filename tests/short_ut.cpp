@@ -39,6 +39,28 @@ TEST(ShortArgs, IntegerRequiredSucces) {
     //~ cerr << setw(4) << cfg.Get() << endl;
 }
 
+TEST(ShortArgs, CharacterRequiredSucces) {
+    // Another way to organize config
+    struct TestConfig: public Config {
+        NamedArg<char, true, 'f'> Foo_ = { *this, "foo", "FOO" };
+        NamedOpt<unsigned, 'b'> Bar_ = { *this, "bar", "BAR", 255 };
+        NamedOpt<vector<char>, 'w'> Wat_ { *this, "wat", "WAT" };
+    };
+
+    TestConfig cfg;
+    ostringstream err;
+    auto ok = cfg.Parse({ "-fa", "-b1", "-w1", "-w", "W" }, err);
+    //~ cerr << err.str() << endl;
+    EXPECT_EQ(true, ok);
+    EXPECT_EQ('a', cfg.Foo_.Get());
+    EXPECT_EQ(1u, cfg.Bar_.Get());
+    EXPECT_EQ(2u, cfg.Wat_.Get().size());
+    EXPECT_EQ('1', cfg.Wat_.Get()[0]);
+    EXPECT_EQ('W', cfg.Wat_.Get()[1]);
+
+    //~ cerr << setw(4) << cfg.Get() << endl;
+}
+
 TEST(ShortArgs, StringStackedSucces) {
     Config cfg;
     NamedArg<bool> foo(cfg, "f", "FOO");
@@ -84,7 +106,18 @@ TEST(ShortArgs, IntegerRequiredFailure) {
     //~ cerr << err.str() << endl;
     EXPECT_EQ(false, ok);
     // TODO: fix message
-    EXPECT_EQ("Option 'f' failed to parse value: stoi", err.str());
+    EXPECT_EQ("Option 'f': Failed to parse value: stoi", err.str());
+}
+
+TEST(ShortArgs, CharacterRequiredFailure) {
+    Config cfg;
+    NamedArg<char> foo(cfg, "f", "FOO");
+
+    ostringstream err;
+    auto ok = cfg.Parse({ "-f", "foo" }, err);
+    //~ cerr << err.str() << endl;
+    EXPECT_EQ(false, ok);
+    EXPECT_EQ("Option 'f': Failed to parse value: Expected one character string", err.str());
 }
 
 TEST(ShortArgs, EqSeparatorFailures) {
@@ -155,7 +188,7 @@ TEST(ShortArgs, StackedValueNoSepError) {
     auto ok = cfg.Parse({ "-fFOO" }, err);
     //~ cerr << err.str() << endl;
     EXPECT_EQ(false, ok);
-    EXPECT_EQ("Option 'f' failed to parse value: stoi", err.str());
+    EXPECT_EQ("Option 'f': Failed to parse value: stoi", err.str());
 }
 
 TEST(ShortArgs, BooleanDuplicateCall) {

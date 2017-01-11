@@ -16,13 +16,13 @@ namespace impl {
     std::string Meta();
 
     template <typename T>
-    T Get(const std::string&, const json&, T def);
+    T Get(const json&);
 
     template <typename T>
-    bool Check(const ArgBase&, const json&, std::ostream&);
+    bool Check(const json&, std::ostream&);
 
     template <typename T>
-    bool Parse(json&, const ArgBase&, const std::string&, std::ostream&);
+    bool Parse(json&, const std::string&, std::ostream&);
 
 } // namespace impl
 } // namespace clar

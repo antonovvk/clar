@@ -102,11 +102,21 @@ namespace clar {
         }
 
         virtual bool Check(const json& val, std::ostream& err) const override {
-            return impl::Check<T>(*this, val, err);
+            std::ostringstream e;
+            if (!impl::Check<T>(val, e)) {
+                err << ArgBase::ReportedName() << ": Failed to load value: " << e.str();
+                return false;
+            }
+            return true;
         }
 
         virtual bool Parse(json& res, const std::string& val, std::ostream& err) const override {
-            return impl::Parse<T>(res, *this, val, err);
+            std::ostringstream e;
+            if (!impl::Parse<T>(res[Name()], val, e)) {
+                err << ArgBase::ReportedName() << ": Failed to parse value: " << e.str();
+                return false;
+            }
+            return true;
         }
 
         operator T () const {
@@ -124,7 +134,11 @@ namespace clar {
             if (!Config_) {
                 throw std::domain_error(ArgBase::ReportedName() + " wasn't added to config");
             }
-            return impl::Get<T>(Name_, Config_->Get(), Default_);
+            auto it = Config_->Get().find(Name_);
+            if (it != Config_->Get().end()) {
+                return impl::Get<T>(it.value());
+            }
+            return Default_;
         }
 
         const T& Default() const {

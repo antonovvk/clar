@@ -18,23 +18,56 @@ namespace impl {
     }
 
     template <>
-    bool Get<bool>(const string& name, const json& data, bool def) {
-        auto it = data.find(name);
-        return it != data.end() ? it.value().get<bool>() : def;
+    bool Get<bool>(const json& data) {
+        return data.get<bool>();
     }
 
     template <>
-    bool Check<bool>(const ArgBase& arg, const json& val, ostream& err) {
+    bool Check<bool>(const json& val, ostream& err) {
         if (!val.is_boolean()) {
-            err << arg.ReportedName() << " expects boolean value in config";
+            err << "Expected boolean";
             return false;
         }
         return true;
     }
 
     template <>
-    bool Parse<bool>(json& res, const ArgBase& arg, const string&, ostream&) {
-        res[arg.Name()] = true;
+    bool Parse<bool>(json& res, const string&, ostream&) {
+        res = true;
+        return true;
+    }
+
+    template <>
+    ArgBase::Value RequiresValue<char>() {
+        return ArgBase::_Single;
+    }
+
+    template <>
+    string Meta<char>() {
+        return "char";
+    }
+
+    template <>
+    char Get<char>(const json& data) {
+        return data.get<string>()[0];
+    }
+
+    template <>
+    bool Check<char>(const json& val, ostream& err) {
+        if (!val.is_string() || val.get<string>().size() != 1) {
+            err << "Expected one character string";
+            return false;
+        }
+        return true;
+    }
+
+    template <>
+    bool Parse<char>(json& res, const string& str, ostream& err) {
+        if (str.size() != 1) {
+            err << "Expected one character string";
+            return false;
+        }
+        res = str;
         return true;
     }
 
@@ -49,20 +82,19 @@ namespace impl {
     }
 
     template <>
-    json Get<json>(const string& name, const json& data, json def) {
-        auto it = data.find(name);
-        return it != data.end() ? it.value() : def;
+    json Get<json>(const json& data) {
+        return data;
     }
 
     template <>
-    bool Check<json>(const ArgBase&, const json&, ostream&) {
+    bool Check<json>(const json&, ostream&) {
         return true;
     }
 
     template <>
-    bool Parse<json>(json& res, const ArgBase& arg, const string& str, ostream& err) {
+    bool Parse<json>(json& res, const string& str, ostream& err) {
         try {
-            res[arg.Name()] = json::parse(str);
+            res = json::parse(str);
         } catch (const exception& e) {
             err << "Failed to parse JSON: " << e.what();
             return false;
@@ -71,10 +103,10 @@ namespace impl {
     }
 
     template <bool S, bool F, bool U>
-    bool CheckValue(const ArgBase&, const json&, ostream&);
+    bool CheckValue(const json&, ostream&);
 
     template <>
-    bool CheckValue<true, false, false>(const ArgBase& arg, const json& val, ostream& err) {
+    bool CheckValue<true, false, false>(const json& val, ostream& err) {
         if (!val.is_string()) {
             err << "Expected string";
             return false;
@@ -83,7 +115,7 @@ namespace impl {
     }
 
     template <>
-    bool CheckValue<false, true, false>(const ArgBase& arg, const json& val, ostream& err) {
+    bool CheckValue<false, true, false>(const json& val, ostream& err) {
         if (!val.is_number_float()) {
             err << "Expected floating point";
             return false;
@@ -92,7 +124,7 @@ namespace impl {
     }
 
     template <>
-    bool CheckValue<false, false, false>(const ArgBase& arg, const json& val, ostream& err) {
+    bool CheckValue<false, false, false>(const json& val, ostream& err) {
         if (!val.is_number_integer()) {
             err << "Expected signed integer";
             return false;
@@ -101,7 +133,7 @@ namespace impl {
     }
 
     template <>
-    bool CheckValue<false, false, true>(const ArgBase& arg, const json& val, ostream& err) {
+    bool CheckValue<false, false, true>(const json& val, ostream& err) {
         if (!val.is_number_unsigned()) {
             err << "Expected unsigned integer";
             return false;
@@ -151,60 +183,56 @@ namespace impl {
 
     template <typename T>
     struct SingleValueTraits {
-        static T Get(const string& name, const json& data, T def) {
-            auto it = data.find(name);
-            return it != data.end() ? it.value().get<T>() : def;
+        static T Get(const json& data) {
+            return data.get<T>();
         }
 
-        static bool Check(const ArgBase& arg, const json& val, ostream& err) {
-            ostringstream e;
-            if (!CheckValue<is_same<T, string>::value, is_floating_point<T>::value, is_unsigned<T>::value>(arg, val, e)) {
-                err << arg.ReportedName() << ": " << e.str() << " value in config";
+        static bool Check(const json& val, ostream& err) {
+            if (!CheckValue<is_same<T, string>::value, is_floating_point<T>::value, is_unsigned<T>::value>(val, err)) {
                 return false;
             }
             return true;
         }
 
-        static bool Parse(json& res, const ArgBase& arg, const string& str, ostream& err) {
+        static bool Parse(json& res, const string& str, ostream& err) {
             T val;
-            ostringstream e;
-            if (!ParseValue<T>(val, str, e)) {
-                err << arg.ReportedName() << " failed to parse value: " << e.str();
+            if (!ParseValue<T>(val, str, err)) {
                 return false;
             }
-            res[arg.Name()] = val;
+            res = val;
             return true;
         }
     };
 
     template <typename T>
     struct MultiValueTraits {
-        static vector<T> Get(const string& name, const json& data, vector<T> def) {
-            auto it = data.find(name);
-            return it != data.end() ? it.value().get<vector<T>>() : def;
+        static vector<T> Get(const json& data) {
+            vector<T> res;
+            for (auto& val: data) {
+                res.push_back(impl::Get<T>(val));
+            }
+            return res;
         }
 
-        static bool Check(const ArgBase& arg, const json& val, ostream& err) {
+        static bool Check(const json& val, ostream& err) {
             if (!val.is_array()) {
-                err << arg.ReportedName() << ": Expected array in config";
+                err << "Expected array";
                 return false;
             }
-            ostringstream e;
-            if (!val.empty() && !CheckValue<is_same<T, string>::value, is_floating_point<T>::value, is_unsigned<T>::value>(arg, val.back(), e)) {
-                err << arg.ReportedName() << ": " << e.str() << " array in config";
+            if (!val.empty() && !impl::Check<T>(val.back(), err)) {
+                err << " array";
                 return false;
             }
             return true;
         }
 
-        static bool Parse(json& res, const ArgBase& arg, const string& str, ostream& err) {
-            T val;
-            ostringstream e;
-            if (!ParseValue<T>(val, str, e)) {
-                err << arg.ReportedName() << " failed to parse value: " << e.str();
+        static bool Parse(json& res, const string& str, ostream& err) {
+            json val;
+            if (!impl::Parse<T>(val, str, err)) {
+                err << " array";
                 return false;
             }
-            res[arg.Name()].push_back(val);
+            res.push_back(val);
             return true;
         }
     };
@@ -219,20 +247,19 @@ namespace impl {
         return meta; \
     } \
     template <> \
-    type Get<type>(const string& name, const json& data, type def) { \
-        return SingleValueTraits<type>::Get(name, data, def); \
+    type Get<type>(const json& data) { \
+        return SingleValueTraits<type>::Get(data); \
     } \
     template <>\
-    bool Check<type>(const ArgBase& arg, const json& val, ostream& err) { \
-        return SingleValueTraits<type>::Check(arg, val, err); \
+    bool Check<type>(const json& val, ostream& err) { \
+        return SingleValueTraits<type>::Check(val, err); \
     } \
     template <> \
-    bool Parse<type>(json& res, const ArgBase& arg, const string& str, ostream& err) { \
-        return SingleValueTraits<type>::Parse(res, arg, str, err); \
+    bool Parse<type>(json& res, const string& str, ostream& err) { \
+        return SingleValueTraits<type>::Parse(res, str, err); \
     }
 
-    IMPL_SINGLE(char, "char");
-    IMPL_SINGLE(unsigned char, "char");
+    IMPL_SINGLE(unsigned char, "uchar");
 
     IMPL_SINGLE(short, "short");
     IMPL_SINGLE(unsigned short, "short");
@@ -260,17 +287,19 @@ namespace impl {
         return meta; \
     } \
     template <> \
-    vector<type> Get<vector<type>>(const string& name, const json& data, vector<type> def) { \
-        return MultiValueTraits<type>::Get(name, data, def); \
+    vector<type> Get<vector<type>>(const json& data) { \
+        return MultiValueTraits<type>::Get(data); \
     } \
     template <>\
-    bool Check<vector<type>>(const ArgBase& arg, const json& val, ostream& err) { \
-        return MultiValueTraits<type>::Check(arg, val, err); \
+    bool Check<vector<type>>(const json& val, ostream& err) { \
+        return MultiValueTraits<type>::Check(val, err); \
     } \
     template <> \
-    bool Parse<vector<type>>(json& res, const ArgBase& arg, const string& str, ostream& err) { \
-        return MultiValueTraits<type>::Parse(res, arg, str, err); \
+    bool Parse<vector<type>>(json& res, const string& str, ostream& err) { \
+        return MultiValueTraits<type>::Parse(res, str, err); \
     }
+
+    IMPL_MULTI(char, "char");
 
     IMPL_MULTI(int, "int");
     IMPL_MULTI(unsigned int, "uint");

@@ -47,7 +47,7 @@ TEST(NamedArgs, IntegerRequiredFailure) {
     //~ cerr << err.str() << endl;
     EXPECT_EQ(false, ok);
     // TODO: fix message
-    EXPECT_EQ("Option 'foo' failed to parse value: stoi", err.str());
+    EXPECT_EQ("Option 'foo': Failed to parse value: stoi", err.str());
 }
 
 TEST(NamedArgs, IntegerArrayRequiredSucces) {
