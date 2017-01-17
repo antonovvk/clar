@@ -107,6 +107,22 @@ ArgPtr CreateHelpAction(Config& config, string name, string info, ostream& out, 
     });
 }
 
+ArgPtr CreateVersionAction(Config& config, string name, string version, ostream& out, bool testing) {
+    return CreateActionSwitch(config, "version", "Print version and exit", [
+        &config,
+        name,
+        version,
+        &out,
+        testing
+    ] (const string&, ostream&) {
+        out << name << " version: " << version << endl;
+        if (!testing) {
+            exit(0);
+        }
+        return true;
+    });
+}
+
 ArgPtr CreateLoadAction(Config& config, string testData) {
     auto a = CreateActionArg(config, "config", "Load config JSON from file", ArgBase::_Single, [&config, testData] (const string& val, ostream& err) {
         if (val.empty()) {

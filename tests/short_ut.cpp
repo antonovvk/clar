@@ -121,7 +121,7 @@ TEST(ShortArgs, CharacterRequiredFailure) {
 }
 
 TEST(ShortArgs, EqSeparatorFailures) {
-    Config cfg("", "", cout, (_UnixFlavours & ~_ShortNoSep) | _EqualsSep);
+    Config cfg("", "", "", cout, (_UnixFlavours & ~_ShortNoSep) | _EqualsSep);
     NamedArg<int> foo(cfg, "f", "FOO");
     NamedArg<bool> bar(cfg, "b", "BAR");
 

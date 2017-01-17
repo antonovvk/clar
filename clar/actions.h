@@ -63,5 +63,6 @@ namespace clar {
     }
 
     ArgPtr CreateHelpAction(Config& config, std::string name, std::string info, std::ostream& out, bool testing = false);
+    ArgPtr CreateVersionAction(Config& config, std::string name, std::string version, std::ostream& out, bool testing = false);
     ArgPtr CreateLoadAction(Config& config, std::string testData = std::string());
 } // namespace clar

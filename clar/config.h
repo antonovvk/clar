@@ -51,6 +51,7 @@ namespace clar {
         Config(
             std::string name = "",
             std::string info = "",
+            std::string version = "",
             std::ostream& infoOutput = std::cout,
             uint64_t flavours = _UnixFlavours,
             const json& testing = json::object()

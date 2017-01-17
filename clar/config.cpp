@@ -297,13 +297,20 @@ private:
     unordered_map<string, const ArgBase*> ArgMap_;
 };
 
-Config::Config(string name, string info, ostream& infoOutput, uint64_t flavours, const json& testing)
+Config::Config(string name, string info, string version, ostream& infoOutput, uint64_t flavours, const json& testing)
     : Impl_(new Impl(flavours))
 {
     if (flavours & _HelpAction) {
         auto a = CreateHelpAction(*this, name, info, infoOutput, testing.count("test-help"));
         if (flavours & _HelpShort) {
             a->Alias("h");
+        }
+        Impl_->Hold(move(a));
+    }
+    if (flavours & _VersionAction) {
+        auto a = CreateVersionAction(*this, name, version, infoOutput, testing.count("test-version"));
+        if (flavours & _VersionShort) {
+            a->Alias("v");
         }
         Impl_->Hold(move(a));
     }
