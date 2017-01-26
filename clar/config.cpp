@@ -121,7 +121,7 @@ public:
                             ++inc;
                             if (sym + 1 == a.size()) {
                                 if (Flavours_ & _SpaceSep) {
-                                    if (idx + 1 < args.size()) {
+                                    if (val.empty() && idx + 1 < args.size()) {
                                         ++inc;
                                         val = args[idx + 1];
                                     }

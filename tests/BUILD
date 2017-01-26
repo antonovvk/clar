@@ -5,6 +5,7 @@ cc_test(
         "free_ut.cpp",
         "short_ut.cpp",
         "config_ut.cpp",
+        "flavours_ut.cpp",
     ],
     copts = [
         "-Iexternal/gtest/googletest/include",

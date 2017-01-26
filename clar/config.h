@@ -77,6 +77,21 @@ namespace clar {
         std::unique_ptr<Impl> Impl_;
     };
 
+    template <uint64_t Flavours>
+    class ConfigWith: public Config {
+    public:
+        ConfigWith(
+            std::string name = "",
+            std::string info = "",
+            std::string version = "",
+            std::ostream& infoOutput = std::cout,
+            const json& testing = json::object()
+        )
+            : Config(name, info, version, infoOutput, Flavours, testing)
+        {
+        }
+    };
+
     template <typename T, bool Required = false, char Short = 0>
     class NamedArg: public ArgBase {
     public:
