@@ -22,7 +22,7 @@ namespace clar {
         {
             std::ostringstream err;
             if (!Add(config, err)) {
-                throw std::domain_error(err.str());
+                throw std::runtime_error(err.str());
             }
         }
 

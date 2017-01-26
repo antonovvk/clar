@@ -224,7 +224,7 @@ public:
 
     bool Add(const ArgBase* arg, ostream& err) {
         if (!arg) {
-            throw domain_error("Config::Impl::Add(): Null argument pointer");
+            throw runtime_error("Config::Impl::Add(): Null argument pointer");
         }
 
         auto info = arg->ReportedName() + " failed to add to config: ";

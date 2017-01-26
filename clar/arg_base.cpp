@@ -41,7 +41,7 @@ ArgBase& ArgBase::Alias(string name) {
     if (Config_) {
         ostringstream err;
         if (!Config_->Alias(Name_, name, err)) {
-            throw domain_error(err.str());
+            throw runtime_error(err.str());
         }
     }
     Names_.push_back(name);

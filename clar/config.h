@@ -90,7 +90,7 @@ namespace clar {
         {
             std::ostringstream err;
             if (!ArgBase::Add(config, err)) {
-                throw std::domain_error(err.str());
+                throw std::runtime_error(err.str());
             }
         }
 
@@ -126,14 +126,14 @@ namespace clar {
 
         bool operator! () const {
             if (!Config_) {
-                throw std::domain_error(ArgBase::ReportedName() + " wasn't added to config");
+                throw std::runtime_error(ArgBase::ReportedName() + " wasn't added to config");
             }
             return Config_->Get().count(Name_) == 0;
         }
 
         T Get() const {
             if (!Config_) {
-                throw std::domain_error(ArgBase::ReportedName() + " wasn't added to config");
+                throw std::runtime_error(ArgBase::ReportedName() + " wasn't added to config");
             }
             auto it = Config_->Get().find(Name_);
             if (it != Config_->Get().end()) {
@@ -186,7 +186,7 @@ namespace clar {
         {
             std::ostringstream err;
             if (!ArgBase::Add(config, err)) {
-                throw std::domain_error(err.str());
+                throw std::runtime_error(err.str());
             }
         }
 
