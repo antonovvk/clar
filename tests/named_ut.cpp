@@ -12,7 +12,7 @@ TEST(NamedArgs, BooleanRequiredSucces) {
     ostringstream err;
     auto ok = cfg.Parse({ "--foo" }, err);
     //~ cerr << err.str() << endl;
-    EXPECT_EQ(true, ok);
+    ASSERT_EQ(true, ok);
     EXPECT_EQ(false, !foo);
     EXPECT_EQ(true, foo.Get());
     EXPECT_EQ(true, !bar);
@@ -29,7 +29,7 @@ TEST(NamedArgs, IntegerRequiredSucces) {
     ostringstream err;
     auto ok = cfg.Parse({ "--foo", "-1", "--bar", "1" }, err);
     //~ cerr << err.str() << endl;
-    EXPECT_EQ(true, ok);
+    ASSERT_EQ(true, ok);
     EXPECT_EQ(false, !foo);
     EXPECT_EQ(false, !bar);
     EXPECT_EQ(-1, foo.Get());
@@ -45,7 +45,7 @@ TEST(NamedArgs, IntegerRequiredFailure) {
     ostringstream err;
     auto ok = cfg.Parse({ "--foo", "FOO" }, err);
     //~ cerr << err.str() << endl;
-    EXPECT_EQ(false, ok);
+    ASSERT_EQ(false, ok);
     // TODO: fix message
     EXPECT_EQ("Option 'foo': Failed to parse value: stoi", err.str());
 }
@@ -58,7 +58,7 @@ TEST(NamedArgs, IntegerArrayRequiredSucces) {
     ostringstream err;
     auto ok = cfg.Parse({ "--foo", "-1", "--bar", "1", "--bar", "2", "--foo", "-2" }, err);
     //~ cerr << err.str() << endl;
-    EXPECT_EQ(true, ok);
+    ASSERT_EQ(true, ok);
     EXPECT_EQ(2u, foo.Get().size());
     EXPECT_EQ(2u, bar.Get().size());
     EXPECT_EQ(-1, foo.Get()[0]);
@@ -76,7 +76,7 @@ TEST(NamedArgs, BooleanUnknownArg) {
     ostringstream err;
     auto ok = cfg.Parse({ "--bar" }, err);
     //~ cerr << err.str() << endl;
-    EXPECT_EQ(false, ok);
+    ASSERT_EQ(false, ok);
     EXPECT_EQ("Unknown argument '--bar' at position 1", err.str());
 }
 
@@ -88,7 +88,7 @@ TEST(NamedArgs, BooleanRequiredMissing) {
     ostringstream err;
     auto ok = cfg.Parse({ "--bar" }, err);
     //~ cerr << err.str() << endl;
-    EXPECT_EQ(false, ok);
+    ASSERT_EQ(false, ok);
     EXPECT_EQ("Option 'foo' is required and was not set", err.str());
 }
 
@@ -100,7 +100,7 @@ TEST(NamedArgs, BooleanDuplicateName) {
     ostringstream err;
     auto ok = bar.Add(cfg, err);
     //~ cerr << err.str() << endl;
-    EXPECT_EQ(false, ok);
+    ASSERT_EQ(false, ok);
     EXPECT_EQ("Option 'foo' failed to add to config: Option name 'foo' is already used", err.str());
 }
 
@@ -111,7 +111,7 @@ TEST(NamedArgs, BooleanMultupleUse) {
     ostringstream err;
     auto ok = cfg.Parse({ "--foo", "--foo" }, err);
     //~ cerr << err.str() << endl;
-    EXPECT_EQ(false, ok);
+    ASSERT_EQ(false, ok);
     EXPECT_EQ("Option 'foo' was specified multiple times", err.str());
 }
 
@@ -137,7 +137,7 @@ TEST(NamedArgs, JsonRequiredSucces) {
     ostringstream err;
     auto ok = cfg.Parse({ "--foo", "[1, 2, 3]" }, err);
     //~ cerr << err.str() << endl;
-    EXPECT_EQ(true, ok);
+    ASSERT_EQ(true, ok);
     EXPECT_EQ("[1,2,3]", foo.Get().dump());
 
     //~ cerr << setw(4) << cfg.Get() << endl;

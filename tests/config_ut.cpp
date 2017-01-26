@@ -29,7 +29,7 @@ TEST(API, DirectCast) {
     auto getUint = [](uint32_t val) { return val; };
     auto getVector = [](vector<string> vec) { return vec; };
 
-    EXPECT_EQ(true, ok);
+    ASSERT_EQ(true, ok);
     EXPECT_EQ(-1, getInt(foo));
     EXPECT_EQ(1u, getUint(bar));
     EXPECT_EQ(2u, getVector(wat).size());
@@ -47,7 +47,7 @@ TEST(Config, LoadBooleanRequiredSuccess) {
     ostringstream err;
     auto ok = cfg.Load({ { "foo", true } }, err);
     //~ cerr << err.str() << endl;
-    EXPECT_EQ(true, ok);
+    ASSERT_EQ(true, ok);
     EXPECT_EQ(true, foo.Get());
     EXPECT_EQ(true, bar.Get());
 }
@@ -60,13 +60,13 @@ TEST(Config, LoadOverride) {
     ostringstream err;
     auto ok = cfg.Load({ { "foo", 1 }, { "bar", { 2, 3, 4 } } }, err);
     //~ cerr << err.str() << endl;
-    EXPECT_EQ(true, ok);
+    ASSERT_EQ(true, ok);
     EXPECT_EQ(1, foo.Get());
     EXPECT_EQ(3u, bar.Get().size());
 
     ok = cfg.Parse({ "--foo", "2", "--bar", "5", "--bar", "6" }, err);
     //~ cerr << err.str() << endl;
-    EXPECT_EQ(true, ok);
+    ASSERT_EQ(true, ok);
     EXPECT_EQ(2, foo.Get());
     EXPECT_EQ(2u, bar.Get().size());
     EXPECT_EQ(5, bar.Get()[0]);
@@ -80,15 +80,15 @@ TEST(Config, LoadBooleanRequiredFailure) {
 
     ostringstream err;
     auto ok = cfg.Load({ { "bar", true } }, err);
-    EXPECT_EQ(true, ok);
+    ASSERT_EQ(true, ok);
 
     ok = cfg.Parse({}, err);
     //~ cerr << err.str() << endl;
-    EXPECT_EQ(false, ok);
+    ASSERT_EQ(false, ok);
     EXPECT_EQ("Option 'foo' is required and was not set", err.str());
 
     ok = cfg.Parse({ "--foo" }, err);
-    EXPECT_EQ(true, ok);
+    ASSERT_EQ(true, ok);
 }
 
 TEST(Config, LoadBooleanUnknownOption) {
@@ -98,7 +98,7 @@ TEST(Config, LoadBooleanUnknownOption) {
     ostringstream err;
     auto ok = cfg.Load({ { "foo", true }, { "bar", true } }, err);
     //~ cerr << err.str() << endl;
-    EXPECT_EQ(false, ok);
+    ASSERT_EQ(false, ok);
     EXPECT_EQ("Unknown option 'bar' was specified in config", err.str());
 }
 
@@ -110,7 +110,7 @@ TEST(Config, LoadBooleanMultipleEntries) {
     ostringstream err;
     auto ok = cfg.Load({ { "foo", true }, { "bar", true } }, err);
     //~ cerr << err.str() << endl;
-    EXPECT_EQ(false, ok);
+    ASSERT_EQ(false, ok);
     EXPECT_EQ("Option 'foo' or one of its aliases was specified in config mulitple times", err.str());
 }
 
@@ -127,7 +127,7 @@ TEST(Config, LoadJsonFields) {
     ostringstream err;
     auto ok = cfg.Load(data, err);
     //~ cerr << err.str() << endl;
-    EXPECT_EQ(true, ok);
+    ASSERT_EQ(true, ok);
     EXPECT_EQ(data.dump(), cfg.Get().dump());
 
     //~ cerr << setw(4) << cfg.Get() << endl;
@@ -146,7 +146,7 @@ TEST(Config, LoadJsonAndIntArray) {
     ostringstream err;
     auto ok = cfg.Load(data, err);
     //~ cerr << err.str() << endl;
-    EXPECT_EQ(true, ok);
+    ASSERT_EQ(true, ok);
     EXPECT_EQ(3u, bar.Get().size());
     EXPECT_EQ(1, bar.Get()[0]);
     EXPECT_EQ(2, bar.Get()[1]);
@@ -163,7 +163,7 @@ TEST(Config, LoadIntArrayFailure) {
     ostringstream err;
     auto ok = cfg.Load({ { "foo", { "A", "B", "C" } } }, err);
     //~ cerr << err.str() << endl;
-    EXPECT_EQ(false, ok);
+    ASSERT_EQ(false, ok);
     EXPECT_EQ("Option 'foo': Failed to load value: Expected signed integer array", err.str());
 }
 
@@ -239,11 +239,11 @@ TEST(ActionArgs, BasicConfig) {
     ostringstream err;
     auto ok = cfg.Parse({ "--config", "test" }, err);
     //~ cerr << err.str() << endl;
-    EXPECT_EQ(true, ok);
+    ASSERT_EQ(true, ok);
     EXPECT_EQ(true, (data == cfg.Get()));
 
     ok = cfg.Parse({ "A", "B", "C", "--wat", "2" }, err);
-    EXPECT_EQ(true, ok);
+    ASSERT_EQ(true, ok);
     json saved;
     cfg.Save(saved);
     // Check that default values are placed in saved config
