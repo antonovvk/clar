@@ -187,6 +187,11 @@ public:
 
     bool Alias(const string& arg, const string& alias, ostream& err) {
         auto info = "Option '" + arg + "': Failed to add alias: ";
+        if (alias == arg) {
+            err << info << "Alias is same as the option name";
+            return false;
+        }
+
         auto it = ArgMap_.find(arg);
         if (it == ArgMap_.end()) {
             err << info << "Unknown option '" << arg << "'";

@@ -200,6 +200,19 @@ TEST(ShortArgs, StackedUnknownArg) {
     EXPECT_EQ("Unknown argument '-fb' at position 1", err.str());
 }
 
+TEST(ShortArgs, AliasNameClash) {
+    Config cfg;
+    try {
+        Switch<'f'> foo(cfg, "f", "FOO");
+        FAIL();
+    } catch (const exception& e) {
+        //~ cerr << e.what() << endl;
+        EXPECT_EQ("Option 'f': Failed to add alias: Alias is same as the option name", string(e.what()));
+    } catch (...) {
+        FAIL();
+    }
+}
+
 TEST(ShortArgs, StackedValueNoSepError) {
     Config cfg;
     NamedArg<int> foo(cfg, "f", "FOO");
