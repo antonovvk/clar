@@ -36,6 +36,7 @@ namespace clar {
         _UnixFlavours =
             _LongDoubleDash |
             _SpaceSep |
+            _EqualsSep |
             _ShortDash |
             _ShortStacked |
             _ShortNoSep |
