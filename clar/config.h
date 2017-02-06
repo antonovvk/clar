@@ -97,17 +97,13 @@ namespace clar {
     class NamedArg: public ArgBase {
     public:
         NamedArg(std::string name, std::string info, T def = T())
-            : NamedArg(false, name, info, def)
+            : NamedArg(false, nullptr, name, info, def)
         {
         }
 
         NamedArg(Config& config, std::string name, std::string info, T def = T())
-            : NamedArg(name, info, def)
+            : NamedArg(false, &config, name, info, def)
         {
-            std::ostringstream err;
-            if (!ArgBase::Add(config, err)) {
-                throw std::runtime_error(err.str());
-            }
         }
 
         virtual ~NamedArg() override
@@ -167,7 +163,7 @@ namespace clar {
         }
 
     protected:
-        NamedArg(bool free, std::string name, std::string info, T def)
+        NamedArg(bool free, Config* config, std::string name, std::string info, T def)
             : ArgBase(name, info, Required, free, impl::RequiresValue<T>())
             , Default_(def)
         {
@@ -176,6 +172,11 @@ namespace clar {
             }
             if (ArgBase::Meta().empty()) {
                 ArgBase::Meta(impl::Meta<T>());
+            }
+
+            std::ostringstream err;
+            if (config && !ArgBase::Add(*config, err)) {
+                throw std::runtime_error(err.str());
             }
         }
 
@@ -193,17 +194,13 @@ namespace clar {
     class FreeArg: public NamedArg<T, Required> {
     public:
         FreeArg(std::string name, std::string info, T def = T())
-            : NamedArg<T, Required>(true, name, info, def)
+            : NamedArg<T, Required>(true, nullptr, name, info, def)
         {
         }
 
         FreeArg(Config& config, std::string name, std::string info, T def = T())
-            : FreeArg(name, info, def)
+            : NamedArg<T, Required>(true, &config, name, info, def)
         {
-            std::ostringstream err;
-            if (!ArgBase::Add(config, err)) {
-                throw std::runtime_error(err.str());
-            }
         }
 
         virtual ~FreeArg() override

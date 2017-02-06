@@ -10,6 +10,7 @@ cc_library(
         "arg_impl.cpp",
         "actions.h",
         "actions.cpp",
+        "file.h",
         "config.cpp",
     ],
     copts = [
