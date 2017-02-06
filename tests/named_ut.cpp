@@ -130,6 +130,32 @@ TEST(NamedArgs, BooleanAliasFailure) {
     }
 }
 
+TEST(NamedArgs, StringLastValueMissing) {
+    Config cfg;
+    NamedArg<string> foo(cfg, "foo", "FOO");
+
+    ostringstream err;
+    auto ok = cfg.Parse({ "--foo" }, err);
+    //~ cerr << err.str() << endl;
+    ASSERT_EQ(false, ok);
+    EXPECT_EQ("Option 'foo' required value is missing", err.str());
+}
+
+TEST(NamedArgs, StringEmptyValueSuccess) {
+    Config cfg;
+    NamedArg<string> foo(cfg, "foo", "FOO");
+    FreeArg<string> bar(cfg, "bar", "BAR");
+
+    ostringstream err;
+    auto ok = cfg.Parse({ "--foo", "", "WAT" }, err);
+    //~ cerr << err.str() << endl;
+    ASSERT_EQ(true, ok);
+    EXPECT_EQ("", foo.Get());
+    EXPECT_EQ("WAT", bar.Get());
+
+    //~ cerr << setw(4) << cfg.Get() << endl;
+}
+
 TEST(NamedArgs, JsonRequiredSucces) {
     Config cfg;
     NamedArg<json, true> foo(cfg, "foo", "FOO");

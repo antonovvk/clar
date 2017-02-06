@@ -76,22 +76,32 @@ TEST(ShortArgs, StringStackedSucces) {
     //~ cerr << setw(4) << cfg.Get() << endl;
 }
 
+TEST(ShortArgs, StringLastValueMissing) {
+    Config cfg;
+    NamedArg<string> foo(cfg, "f", "FOO");
+
+    ostringstream err;
+    auto ok = cfg.Parse({ "-f" }, err);
+    //~ cerr << err.str() << endl;
+    ASSERT_EQ(false, ok);
+    EXPECT_EQ("Option 'f' shortcut 'f' required value is missing", err.str());
+}
+
 TEST(ShortArgs, MultipleStringStackedSucces) {
     Config cfg;
     NamedArg<vector<string>> foo(cfg, "f", "FOO");
     NamedArg<bool> bar(cfg, "b", "BAR");
 
     ostringstream err;
-    auto ok = cfg.Parse({ "-bf", "-fb", "-f", "", "-fFOO", "-f", "BAR", "-f" }, err);
+    auto ok = cfg.Parse({ "-bf", "-fb", "-f", "", "-fFOO", "-f", "BAR" }, err);
     //~ cerr << err.str() << endl;
     ASSERT_EQ(true, ok);
     EXPECT_EQ(true, bar.Get());
-    EXPECT_EQ(5u, foo.Get().size());
+    EXPECT_EQ(4u, foo.Get().size());
     EXPECT_EQ("-fb", foo.Get()[0]);
     EXPECT_EQ("", foo.Get()[1]);
     EXPECT_EQ("FOO", foo.Get()[2]);
     EXPECT_EQ("BAR", foo.Get()[3]);
-    EXPECT_EQ("", foo.Get()[4]);
 
     //~ cerr << setw(4) << cfg.Get() << endl;
 }

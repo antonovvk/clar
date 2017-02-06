@@ -74,11 +74,13 @@ public:
         size_t pos = 0;
         while (idx < args.size()) {
             string val;
+            bool haveVal = false;
             auto a = args[idx];
             if (Flavours_ & _EqualsSep) {
                 auto p = a.find('=');
                 if (p != string::npos) {
                     val = a.substr(p + 1);
+                    haveVal = true;
                 }
                 a = a.substr(0, p);
             }
@@ -88,10 +90,13 @@ public:
                 if (MatchLong(*arg, a)) {
                     ++inc;
                     if (!arg->IsSwitch() && (Flavours_ & _SpaceSep)) {
-                        if (idx + 1 < args.size()) {
-                            ++inc;
-                            val = args[idx + 1];
+                        if (idx + 1 >= args.size()) {
+                            err << arg->ReportedName() << " required value is missing";
+                            return false;
                         }
+                        ++inc;
+                        val = args[idx + 1];
+                        haveVal = true;
                     }
                     if (!matched(arg, val)) {
                         return false;
@@ -121,9 +126,14 @@ public:
                             ++inc;
                             if (sym + 1 == a.size()) {
                                 if (Flavours_ & _SpaceSep) {
-                                    if (val.empty() && idx + 1 < args.size()) {
+                                    if (!haveVal) {
+                                        if (idx + 1 >= args.size()) {
+                                            err << arg->ReportedName() << " shortcut '" << a[sym] << "' required value is missing";
+                                            return false;
+                                        }
                                         ++inc;
                                         val = args[idx + 1];
+                                        haveVal = true;
                                     }
                                 }
                             } else if (Flavours_ & _ShortNoSep) {
