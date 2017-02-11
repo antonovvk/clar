@@ -185,10 +185,10 @@ TEST(ActionArgs, BasicHelp) {
 
     EXPECT_EQ(
         "test: This is HELP test\n"
-        "Usage: test [options] --foo <int> <bar string> [jar string 1 ... jar string N]\n"
+        "Usage: test [options] --foo <int32> <bar string> [jar string 1 ... jar string N]\n"
         "\n"
         "Required arguments:\n"
-        "  --foo <int>              -- FOO\n"
+        "  --foo <int32>            -- FOO\n"
         "  <bar string>             -- BAR\n"
         "\n"
         "Optional arguments:\n"
@@ -196,9 +196,9 @@ TEST(ActionArgs, BasicHelp) {
         "  -v, --version            -- Print version and exit\n"
         "  -c, --config <file name> -- Load config JSON from file\n"
         "  -F, --fat <string>       -- FAT (default value: \"CAT\")\n"
-        "  -N, --num <uint>         -- NUM (default value: 123)\n"
+        "  -N, --num <uint64>       -- NUM (default value: 123)\n"
         "  -C, --cat <char>         -- CAT (default value: \"@\")\n"
-        "  -W, --wat <uint>         -- (multiple) WAT (default value: [])\n"
+        "  -W, --wat <uint64>       -- (multiple) WAT (default value: [])\n"
         "  [jar string]             -- (multiple) JAR (default value: [])\n",
         out.str()
     );

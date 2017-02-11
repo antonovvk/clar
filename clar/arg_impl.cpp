@@ -159,8 +159,40 @@ namespace impl {
     template <typename T>
     bool ParseValue(T& val, const string& str, ostream& err) {
         try {
-            // TODO: check T overflow
             val = stoi(str);
+        } catch (const exception& e) {
+            err << e.what();
+            return false;
+        }
+        return true;
+    }
+
+    template <>
+    bool ParseValue(uint32_t& val, const string& str, ostream& err) {
+        try {
+            val = stoul(str);
+        } catch (const exception& e) {
+            err << e.what();
+            return false;
+        }
+        return true;
+    }
+
+    template <>
+    bool ParseValue(int64_t& val, const string& str, ostream& err) {
+        try {
+            val = stol(str);
+        } catch (const exception& e) {
+            err << e.what();
+            return false;
+        }
+        return true;
+    }
+
+    template <>
+    bool ParseValue(uint64_t& val, const string& str, ostream& err) {
+        try {
+            val = stoul(str);
         } catch (const exception& e) {
             err << e.what();
             return false;
@@ -291,14 +323,14 @@ namespace impl {
 
     IMPL_SINGLE(unsigned char, "uchar");
 
-    IMPL_SINGLE(short, "short");
-    IMPL_SINGLE(unsigned short, "short");
+    IMPL_SINGLE(int16_t, "int16");
+    IMPL_SINGLE(uint16_t, "uint16");
 
-    IMPL_SINGLE(int, "int");
-    IMPL_SINGLE(unsigned int, "uint");
+    IMPL_SINGLE(int32_t, "int32");
+    IMPL_SINGLE(uint32_t, "uint32");
 
-    IMPL_SINGLE(long int, "int");
-    IMPL_SINGLE(unsigned long int, "uint");
+    IMPL_SINGLE(int64_t, "int64");
+    IMPL_SINGLE(uint64_t, "uint64");
 
     IMPL_SINGLE(float, "float");
     IMPL_SINGLE(double, "double");
@@ -335,11 +367,11 @@ namespace impl {
 
     IMPL_MULTI(char, "char");
 
-    IMPL_MULTI(int, "int");
-    IMPL_MULTI(unsigned int, "uint");
+    IMPL_MULTI(int32_t, "int32");
+    IMPL_MULTI(uint32_t, "uint32");
 
-    IMPL_MULTI(long int, "int");
-    IMPL_MULTI(unsigned long int, "uint");
+    IMPL_MULTI(int64_t, "int64");
+    IMPL_MULTI(uint64_t, "uint64");
 
     IMPL_MULTI(float, "float");
     IMPL_MULTI(double, "double");

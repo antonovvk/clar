@@ -38,6 +38,50 @@ TEST(NamedArgs, IntegerRequiredSucces) {
     //~ cerr << setw(4) << cfg.Get() << endl;
 }
 
+TEST(NamedArgs, DifferentIntSizes) {
+    Config cfg;
+    NamedArg<int16_t> int16(cfg, "i16", "");
+    NamedArg<int32_t> int32(cfg, "i32", "");
+    NamedArg<int64_t> int64(cfg, "i64", "");
+    NamedArg<uint16_t> uint16(cfg, "ui16", "");
+    NamedArg<uint32_t> uint32(cfg, "ui32", "");
+    NamedArg<uint64_t> uint64(cfg, "ui64", "");
+
+    ostringstream err;
+    auto ok = cfg.Parse({
+        "--i16", "-32000",
+        "--ui16", "64000",
+        "--i32", "-2000000000",
+        "--ui32", "4000000000",
+        "--i64", "-4000000000",
+        "--ui64", "8000000000",
+    }, err);
+    //~ cerr << err.str() << endl;
+
+    ASSERT_EQ(true, ok);
+    EXPECT_EQ(-32000, int16.Get());
+    EXPECT_EQ(64000u, uint16.Get());
+    EXPECT_EQ(-2000000000, int32.Get());
+    EXPECT_EQ(4000000000u, uint32.Get());
+    EXPECT_EQ(-4000000000, int64.Get());
+    EXPECT_EQ(8000000000u, uint64.Get());
+
+    //~ cerr << setw(4) << cfg.Get() << endl;
+}
+
+TEST(NamedArgs, Int32Overflow) {
+    Config cfg;
+    NamedArg<int32_t> int32(cfg, "i32", "");
+
+    ostringstream err;
+    auto ok = cfg.Parse({
+        "--i32", "-3000000000",
+    }, err);
+    //~ cerr << err.str() << endl;
+    ASSERT_EQ(false, ok);
+    EXPECT_EQ("Option 'i32': Failed to parse value: stoi", err.str());
+}
+
 TEST(NamedArgs, IntegerRequiredFailure) {
     Config cfg;
     NamedArg<int, true> foo(cfg, "foo", "FOO");
