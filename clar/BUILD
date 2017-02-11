@@ -1,7 +1,7 @@
 cc_library(
     name = "clar",
     hdrs = [
-        "config.h",
+        "clar.h",
     ],
     srcs = [
         "arg_base.h",
@@ -11,6 +11,7 @@ cc_library(
         "actions.h",
         "actions.cpp",
         "file.h",
+        "config.h",
         "config.cpp",
     ],
     copts = [
