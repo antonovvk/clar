@@ -265,8 +265,8 @@ public:
         }
 
         if (arg->IsFree()) {
-            if (!FreeArgs_.empty() && FreeArgs_.back()->IsMultiple()) {
-                err << info << "Only the last free arg is allowed to accept multiple values";
+            if (!FreeArgs_.empty() && (!FreeArgs_.back()->IsRequired() || FreeArgs_.back()->IsMultiple())) {
+                err << info << "Only the last free arg is allowed to be optional or accept multiple values";
                 return false;
             }
             FreeArgs_.push_back(arg);

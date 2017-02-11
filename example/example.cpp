@@ -1,5 +1,4 @@
-#include "clar/config.h"
-#include "clar/file.h"
+#include "clar/clar.h"
 
 using namespace std;
 using namespace clar;
@@ -14,9 +13,9 @@ int main(int argc, char* argv[]) {
     NamedOpt<uint32_t, 'b'> bar = { cfg, "bar", "BAR", 100500 };
     NamedOpt<vector<string>, 'w'> wat = { cfg, "wat", "WAT" };
     FreeArg<string, true> a = { cfg, "A", "AAA" };
-    FreeArg<vector<uint32_t>> b = { cfg, "B", "BBB" };
+    FreeArg<uint32_t, true> b = { cfg, "B", "BBB" };
     OutputFileOpt<> cfgOut = { cfg, "cfg-out", "Save startup config in file", "-" };
-    InputFileOpt<> inFile = { cfg, "input-file", "Read file" };
+    FreeInputFileArg<false> inFile = { cfg, "input-file", "Read file" };
 
     if (!cfg.Parse(argc, argv, cerr)) {
         cerr << endl;

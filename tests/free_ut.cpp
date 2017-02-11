@@ -77,6 +77,19 @@ TEST(FreeArgs, ManySingularFreeArgs) {
     //~ cerr << setw(4) << cfg.Get() << endl;
 }
 
+TEST(FreeArgs, OptionalFreeArgInTheMiddle) {
+    Config cfg;
+    FreeArg<int, true> foo(cfg, "foo", "FOO");
+    FreeArg<uint32_t> bar(cfg, "bar", "BAR");
+    FreeArg<int, true> jar("jar", "JAR");
+
+    ostringstream err;
+    auto ok = jar.Add(cfg, err);
+    //~ cerr << err.str() << endl;
+    ASSERT_EQ(false, ok);
+    EXPECT_EQ("Option 'jar' failed to add to config: Only the last free arg is allowed to be optional or accept multiple values", err.str());
+}
+
 TEST(FreeArgs, ManyMultipleFreeArgs) {
     Config cfg;
     FreeArg<vector<int>, true> foo(cfg, "foo", "FOO");
@@ -86,5 +99,5 @@ TEST(FreeArgs, ManyMultipleFreeArgs) {
     auto ok = bar.Add(cfg, err);
     //~ cerr << err.str() << endl;
     ASSERT_EQ(false, ok);
-    EXPECT_EQ("Option 'bar' failed to add to config: Only the last free arg is allowed to accept multiple values", err.str());
+    EXPECT_EQ("Option 'bar' failed to add to config: Only the last free arg is allowed to be optional or accept multiple values", err.str());
 }

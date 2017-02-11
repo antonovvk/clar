@@ -57,10 +57,10 @@ namespace clar {
     template <char Short = 0>
     using OutputFileOpt = OutputFileArg<false, Short>;
 
-    template <bool Required, char Short = 0>
-    using FreeInputFileArg = FileArg<false, true, Required, Short>;
+    template <bool Required>
+    using FreeInputFileArg = FileArg<false, true, Required>;
 
-    template <bool Required, char Short = 0>
-    using FreeOutputFileArg = FileArg<true, true, Required, Short>;
+    template <bool Required>
+    using FreeOutputFileArg = FileArg<true, true, Required>;
 
 } // namespace clar
