@@ -89,7 +89,7 @@ public:
             for (auto arg: NamedArgs_) {
                 if (MatchLong(*arg, a)) {
                     ++inc;
-                    if (!arg->IsSwitch() && (Flavours_ & _SpaceSep)) {
+                    if (!arg->IsSwitch() && (Flavours_ & _SpaceSep) && !haveVal) {
                         if (idx + 1 >= args.size()) {
                             err << arg->ReportedName() << " required value is missing";
                             return false;
