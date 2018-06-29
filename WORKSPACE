@@ -5,9 +5,10 @@ new_git_repository(
     build_file = "contrib/gtest.BUILD",
 )
 
-new_git_repository(
+new_http_archive(
     name = "json",
-    remote = "https://github.com/nlohmann/json",
-    tag = "v2.0.8",
+    url = "https://github.com/nlohmann/json/releases/download/v3.1.2/include.zip",
+    sha256 = "495362ee1b9d03d9526ba9ccf1b4a9c37691abe3a642ddbced13e5778c16660c",
     build_file = "contrib/json.BUILD",
+    strip_prefix = "include",
 )

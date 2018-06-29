@@ -5,7 +5,7 @@
 #include <vector>
 #include <iostream>
 
-#include "src/json.hpp"
+#include "nlohmann/json.hpp"
 
 namespace clar {
     using nlohmann::json;

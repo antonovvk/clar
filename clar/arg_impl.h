@@ -4,7 +4,7 @@
 #include <vector>
 #include <iostream>
 
-#include "src/json.hpp"
+#include "nlohmann/json.hpp"
 #include "arg_base.h"
 
 namespace clar {
